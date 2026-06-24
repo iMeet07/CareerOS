@@ -2,6 +2,8 @@
 
 > Self-hosted · Local-first · LLM-powered
 
+<!-- screenshots: docs/screenshots/ -->
+
 Atriveo is a full job search operating system that runs on your machine. It scrapes job postings, scores and ranks them against your profile, auto-tailors resumes using a local LLM (no API cost), and tracks your entire pipeline from discovery to offer.
 
 ---
