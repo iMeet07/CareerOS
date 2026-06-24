@@ -1,0 +1,21 @@
+{
+  "profile": {
+    "name": "Jane Doe",
+    "keywords": [
+      "software engineer", "full stack", "backend", "typescript", "python", "react"
+    ],
+    "location": "San Francisco, CA",
+    "preferred_locations": ["San Francisco", "New York", "Remote"],
+    "remote_preferred": true,
+    "excluded_companies": ["Company I Don't Want"],
+
+    "greenhouse_boards": [
+      "airbnb", "figma", "notion", "stripe", "linear", "vercel",
+      "anthropic", "openai", "databricks"
+    ],
+    "lever_companies": [
+      "netflix", "spotify", "shopify", "github", "cloudflare",
+      "discord", "plaid", "brex"
+    ]
+  }
+}

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atriveo-app
+  namespace: atriveo
+  labels:
+    app: atriveo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: atriveo-app
+  template:
+    metadata:
+      labels:
+        app: atriveo-app
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/atishay-kasliwal/atriveo-jd-extractor:latest
+          ports:
+            - containerPort: 3001
+          envFrom:
+            - configMapRef:
+                name: atriveo-config
+            - secretRef:
+                name: atriveo-secrets
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: atriveo-app
+  namespace: atriveo
+spec:
+  selector:
+    app: atriveo-app
+  ports:
+    - port: 3001
+      targetPort: 3001
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: atriveo-app
+  namespace: atriveo
+spec:
+  to:
+    kind: Service
+    name: atriveo-app
+  port:
+    targetPort: 3001
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: atriveo-scraper
+  namespace: atriveo
+spec:
+  schedule: "0 * * * *"       # every hour on the hour
+  concurrencyPolicy: Forbid   # never run two scrapers at once
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: scraper
+              image: ghcr.io/atishay-kasliwal/atriveo-jd-extractor-scraper:latest
+              command: ["python", "-m", "scraper.main", "--sources", "greenhouse", "lever"]
+              envFrom:
+                - configMapRef:
+                    name: atriveo-config
+                - secretRef:
+                    name: atriveo-secrets
+              volumeMounts:
+                - name: config
+                  mountPath: /app/config.json
+                  subPath: config.json
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "256Mi"
+          volumes:
+            - name: config
+              configMap:
+                name: atriveo-scraper-config
+---
+# Store the user's config.json as a ConfigMap
+# To update: kubectl create configmap atriveo-scraper-config --from-file=config.json -n atriveo
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: atriveo-scraper-config
+  namespace: atriveo
+data:
+  config.json: |
+    {
+      "profile": {
+        "keywords": ["software engineer", "full stack", "backend"],
+        "preferred_locations": ["Remote"],
+        "remote_preferred": true,
+        "greenhouse_boards": ["airbnb", "figma", "notion", "stripe"],
+        "lever_companies": ["netflix", "spotify", "shopify", "github"]
+      }
+    }

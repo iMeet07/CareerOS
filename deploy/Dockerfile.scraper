@@ -1,0 +1,6 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY scraper/ ./scraper/
+COPY config.example.json ./config.json
+RUN pip install --no-cache-dir -r scraper/requirements.txt
+CMD ["python", "-m", "scraper.main"]

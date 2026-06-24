@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: atriveo-config
+  namespace: atriveo
+data:
+  NODE_ENV: "production"
+  DB_TYPE: "postgres"
+  SERVER_PORT: "3001"
+  OLLAMA_MODEL: "gemma3:12b"
+  LINKEDIN_ENABLED: "false"
+  CORS_ORIGIN: "https://atriveo.your-domain.com"   # change this
+  SERVER_URL: "http://atriveo-app:3001"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: atriveo-secrets
+  namespace: atriveo
+type: Opaque
+stringData:
+  JWT_SECRET: "CHANGE_ME_32_CHARS_MINIMUM"
+  SCRAPER_TOKEN: "CHANGE_ME"
+  TAILOR_TOKEN: "CHANGE_ME"
+  DATABASE_URL: "postgres://atriveo:CHANGE_ME@postgres:5432/atriveo"
+  EMAILFINDER_API_KEY: ""
+  LINKEDIN_EMAIL: ""
+  LINKEDIN_PASSWORD: ""

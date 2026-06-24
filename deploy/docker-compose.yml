@@ -1,0 +1,105 @@
+version: "3.9"
+
+# Atriveo — full local self-hosted stack
+# Usage: docker compose up -d
+# Docs:  docs/docker-setup.md
+
+services:
+
+  # ── App (frontend + API) ──────────────────────────────────────────────────
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      DB_TYPE: ${DB_TYPE:-postgres}
+      DATABASE_URL: postgres://atriveo:atriveo@postgres:5432/atriveo
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      SCRAPER_TOKEN: ${SCRAPER_TOKEN:?SCRAPER_TOKEN is required}
+      TAILOR_TOKEN: ${TAILOR_TOKEN:-}
+      EMAILFINDER_API_KEY: ${EMAILFINDER_API_KEY:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - resume_output:/app/output
+    restart: unless-stopped
+
+  # ── Sidecar (resume compiler) ────────────────────────────────────────────
+  sidecar:
+    image: node:20-alpine
+    working_dir: /app
+    command: node sidecar/tailor-server.mjs
+    ports:
+      - "8787:8787"
+    environment:
+      TAILOR_TOKEN: ${TAILOR_TOKEN:-}
+      OLLAMA_HOST: ollama
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma3:12b}
+      RESUME_ENGINE_PATH: /resume-engine
+      TAILOR_OUT_ROOT: /output/tailored-resumes
+    volumes:
+      - ../sidecar:/app/sidecar:ro
+      - ${RESUME_ENGINE_PATH:-./resume-engine}:/resume-engine:ro
+      - resume_output:/output
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  # ── Scraper (runs on schedule via cron container) ─────────────────────────
+  scraper:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.scraper
+    environment:
+      SERVER_URL: http://app:3001
+      SCRAPER_TOKEN: ${SCRAPER_TOKEN:?SCRAPER_TOKEN is required}
+      LINKEDIN_ENABLED: ${LINKEDIN_ENABLED:-false}
+      LINKEDIN_EMAIL: ${LINKEDIN_EMAIL:-}
+      LINKEDIN_PASSWORD: ${LINKEDIN_PASSWORD:-}
+      CONFIG_PATH: /app/config.json
+    volumes:
+      - ../config.json:/app/config.json:ro
+    depends_on:
+      - app
+    # Runs hourly via docker's built-in restart + sleep trick
+    # For production use the OpenShift CronJob instead
+    entrypoint: ["/bin/sh", "-c", "while true; do python -m scraper.main; sleep 3600; done"]
+    restart: unless-stopped
+
+  # ── Ollama (local LLM) ────────────────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+
+  # ── PostgreSQL ────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: atriveo
+      POSTGRES_PASSWORD: atriveo
+      POSTGRES_DB: atriveo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../migrations/postgres/0001_init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atriveo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  ollama_models:
+  resume_output:
