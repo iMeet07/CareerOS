@@ -120,20 +120,32 @@ npm run pipeline:status   # health check for all services
 
 ---
 
+## Documentation
+
+| Guide | Description |
+|---|---|
+| [Cloudflare Setup](docs/cloudflare-setup.md) | Deploy to Cloudflare Pages + D1 (free tier) |
+| [OpenShift Setup](docs/openshift-setup.md) | Fully self-hosted on OpenShift / Kubernetes |
+| [Resume Engine](docs/resume-engine.md) | Set up your bullet bank + compile PDFs locally |
+| [Scraper Sources](docs/scraper-sources.md) | Greenhouse, Lever, LinkedIn — setup + scoring |
+
+---
+
 ## Roadmap
 
-- [ ] Linux systemd service support
-- [ ] Docker compose for full local stack
-- [ ] Support for more job sources (Indeed, Greenhouse, Lever)
+- [ ] Linux systemd service installer
 - [ ] Web UI setup wizard (no manual `.env` editing)
+- [ ] More job sources (Ashby, Workday, Rippling)
 - [ ] Resume engine: PDF diff viewer in dashboard
 - [ ] Multi-user support
+- [ ] Browser extension for passive LinkedIn capture
 
 ---
 
 ## Contributing
 
-PRs welcome. Open an issue first for large changes.
+PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Open an issue first for anything larger than a bug fix.
 
 ---
 

@@ -1,0 +1,35 @@
+name: New Job Source
+description: Request or propose adding a new job board / ATS source
+labels: [new-source]
+body:
+  - type: input
+    id: source
+    attributes:
+      label: Source name
+      placeholder: Workday, Ashby, Rippling, etc.
+    validations:
+      required: true
+
+  - type: input
+    id: api
+    attributes:
+      label: Public API URL (if known)
+      placeholder: https://wd3.myworkdayjobs.com/...
+
+  - type: dropdown
+    id: auth
+    attributes:
+      label: Does it require authentication?
+      options:
+        - "No — fully public"
+        - "Yes — API key"
+        - "Yes — user credentials"
+        - Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes / examples
+      description: Links to docs, example responses, or companies that use this ATS.

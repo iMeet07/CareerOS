@@ -1,0 +1,66 @@
+name: Bug Report
+description: Something isn't working
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: check the [troubleshooting sections](https://github.com/atishay-kasliwal/Atriveo-JD-Extractor/tree/main/docs) in the docs.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Frontend (dashboard UI)
+        - API server
+        - Scraper (Greenhouse/Lever/LinkedIn)
+        - Resume sidecar (tailor/compile)
+        - Docker / docker-compose
+        - OpenShift deploy
+        - Setup script
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you expect vs. what actually occurred?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `npm run tailor:prod`
+        2. Click Tailor on a job
+        3. See error in console
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or error output
+      render: shell
+
+  - type: dropdown
+    id: deploy
+    attributes:
+      label: Deploy target
+      options:
+        - Local (npm run dev)
+        - Cloudflare Pages
+        - OpenShift
+        - Docker compose
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: macOS 14, Ubuntu 22.04, etc.
