@@ -1,0 +1,14 @@
+name = "atriveo"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "atriveo-auth"
+database_id = "PASTE_YOUR_D1_DATABASE_ID_HERE"
+
+[vars]
+JWT_SECRET = "CHANGE_ME_32_CHARS_MINIMUM"
+SCRAPER_TOKEN = "CHANGE_ME"
+EMAILFINDER_API_KEY = ""
+# TAILOR_ORIGIN = "https://tailor-relay.yourdomain.com"
