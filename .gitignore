@@ -1,0 +1,24 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.tailor
+.dev.vars
+
+# Personal resume data — never commit
+resume-engine/
+output/
+
+# Cloudflare / Wrangler
+.wrangler/
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Logs
+*.log
