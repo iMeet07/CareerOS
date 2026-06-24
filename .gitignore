@@ -9,6 +9,18 @@ dist/
 resume-engine/
 output/
 
+# Generated job data (produced by scraper — each user's is different)
+app/public/jobs.json
+app/public/important_jobs.json
+app/public/today_jobs.json
+app/public/week_jobs.json
+app/public/yesterday_jobs.json
+app/public/metadata.json
+app/public/run_history.json
+app/public/skills_summary.json
+app/public/job_descriptions/
+data/
+
 # Cloudflare / Wrangler
 .wrangler/
 
