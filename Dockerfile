@@ -4,7 +4,7 @@ WORKDIR /build
 COPY package*.json ./
 COPY app/ ./app/
 COPY tsconfig.json ./
-RUN npm ci --ignore-scripts
+RUN npm install --ignore-scripts
 RUN npm run build
 
 # ── Stage 2: build the Express server ────────────────────────────────────────
@@ -13,7 +13,7 @@ WORKDIR /build
 COPY package*.json ./
 COPY server/ ./server/
 COPY tsconfig.json ./
-RUN npm ci --ignore-scripts
+RUN npm install --ignore-scripts
 RUN npx tsc -p server/tsconfig.json
 
 # ── Stage 3: production image ─────────────────────────────────────────────────
@@ -27,7 +27,7 @@ COPY package*.json ./
 COPY migrations/ ./migrations/
 
 # Install production deps only
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 # Serve static files from Express
 RUN npm install serve-static --save
