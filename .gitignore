@@ -34,3 +34,4 @@ __pycache__/
 
 # Logs
 *.log
+package-lock.json
