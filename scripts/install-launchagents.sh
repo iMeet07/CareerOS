@@ -55,9 +55,7 @@ install_agent "com.atriveo.scraper" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
     <key>LINKEDIN_EMAIL</key><string>${LINKEDIN_EMAIL:-}</string>
     <key>LINKEDIN_PASSWORD</key><string>${LINKEDIN_PASSWORD:-}</string>
   </dict>
-  <key>StartCalendarInterval</key><dict>
-    <key>Minute</key><integer>0</integer>
-  </dict>
+  <key>StartInterval</key><integer>3600</integer>
   <key>StandardOutPath</key><string>/tmp/atriveo_scraper.log</string>
   <key>StandardErrorPath</key><string>/tmp/atriveo_scraper.log</string>
   <key>RunAtLoad</key><false/>
