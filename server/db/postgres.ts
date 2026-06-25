@@ -1,7 +1,4 @@
 import pg from "pg";
-import fs from "fs";
-import { fileURLToPath } from "url";
-import path from "path";
 import type { DbAdapter } from "./adapter.js";
 import type { Job, Contact, Template, User } from "../types.js";
 
