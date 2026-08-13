@@ -8,7 +8,12 @@ class Job:
     company: str
     location: str
     url: str
-    source: Literal["linkedin", "greenhouse", "lever", "indeed", "glassdoor", "manual"]
+    source: Literal[
+        "linkedin", "greenhouse", "lever", "indeed", "glassdoor", "manual",
+        "ashby", "remotive", "himalayas", "remoteok", "jobicy", "themuse",
+        "adzuna", "usajobs", "workday", "bamboohr", "workable", "simplify",
+        "ycombinator", "biospace", "weworkremotely", "hn",
+    ]
     score: float
     status: str = "new"
     description: Optional[str] = None

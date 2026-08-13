@@ -8,7 +8,6 @@ from datetime import datetime
 from typing import AsyncIterator
 from ..models import Job
 
-# A curated list of companies on Greenhouse. Users can extend this in config.
 DEFAULT_BOARDS = [
     "airbnb", "figma", "notion", "stripe", "linear", "vercel",
     "anthropic", "openai", "databricks", "snowflake", "confluent",
@@ -21,17 +20,14 @@ def _job_id(board: str, gh_id: int) -> str:
 def _dept_names(departments: list) -> str:
     return " ".join(d["name"] if isinstance(d, dict) else d for d in departments)
 
-def _score(job: dict, keywords: list[str]) -> float:
-    text = f"{job.get('title','')} {_dept_names(job.get('departments', []))} {job.get('location', {}).get('name','')}".lower()
-    hits = sum(1 for kw in keywords if kw.lower() in text)
-    return round(min(hits / max(len(keywords), 1), 1.0) * 10, 2)
-
-async def scrape(boards: list[str] | None = None, keywords: list[str] = []) -> AsyncIterator[Job]:
+async def scrape(boards: list[str] | None = None) -> AsyncIterator[Job]:
     boards = boards or DEFAULT_BOARDS
     async with httpx.AsyncClient(timeout=15) as client:
         for board in boards:
             try:
-                res = await client.get(f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs?content=true")
+                res = await client.get(
+                    f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs?content=true"
+                )
                 if res.status_code != 200:
                     continue
                 data = res.json()
@@ -39,13 +35,13 @@ async def scrape(boards: list[str] | None = None, keywords: list[str] = []) -> A
                     yield Job(
                         id=_job_id(board, job["id"]),
                         title=job.get("title", ""),
-                        company=board.title(),
+                        company=board.replace("-", " ").title(),
                         location=job.get("location", {}).get("name", "Remote"),
                         url=job.get("absolute_url", ""),
                         source="greenhouse",
-                        score=_score(job, keywords),
+                        score=0.0,          # scored by main.py after yield
                         status="new",
-                        description=job.get("content", "")[:2000] if job.get("content") else None,
+                        description=job.get("content", "")[:4000] if job.get("content") else None,
                         posted_at=job.get("updated_at"),
                         scraped_at=datetime.utcnow().isoformat(),
                         tags=[d["name"] for d in job.get("departments", [])],

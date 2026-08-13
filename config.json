@@ -2,36 +2,58 @@
   "profile": {
     "name": "Meet Brahmbhatt",
 
-    "keywords": [
-      "machine learning", "ml engineer", "ai engineer", "nlp engineer",
-      "data scientist", "applied scientist", "research scientist",
-      "data engineer", "analytics engineer", "software engineer",
-      "backend engineer", "forward deployed engineer", "mlops",
-      "python", "pytorch", "tensorflow", "langchain", "langgraph",
-      "llm", "large language model", "rag", "transformer", "deep learning",
-      "pyspark", "kafka", "airflow", "scikit-learn", "huggingface",
-      "vector search", "embeddings", "generative ai", "multimodal"
-    ],
-
-    "linkedin_queries": [
-      "machine learning engineer new grad 2026",
-      "ai engineer entry level",
-      "data scientist new grad",
-      "nlp engineer entry level",
-      "data engineer new grad 2026",
-      "software engineer ml ai",
-      "applied scientist new grad",
-      "research scientist entry level ml"
-    ],
-
-    "location": "New York, NY",
-    "preferred_locations": ["New York", "Remote", "Stony Brook"],
+    "location": "United States",
+    "preferred_locations": ["United States", "Remote"],
     "remote_preferred": true,
 
     "excluded_companies": [],
 
+    "linkedin_queries": [
+      "software engineer new grad 2026",
+      "software developer entry level",
+      "backend engineer entry level",
+      "frontend engineer new grad",
+      "full stack engineer entry level",
+      "platform engineer new grad",
+      "mobile engineer entry level",
+      "data scientist new grad 2026",
+      "applied scientist entry level",
+      "data analyst entry level",
+      "analytics engineer new grad",
+      "business intelligence analyst entry level",
+      "quantitative analyst new grad",
+      "data engineer new grad 2026",
+      "machine learning engineer new grad 2026",
+      "ml engineer entry level",
+      "ai engineer new grad",
+      "deep learning engineer entry level",
+      "nlp engineer new grad",
+      "computer vision engineer entry level",
+      "research engineer machine learning",
+      "mlops engineer entry level",
+      "generative ai engineer new grad",
+      "llm engineer entry level",
+      "devops engineer new grad",
+      "cloud engineer entry level",
+      "site reliability engineer new grad",
+      "cybersecurity analyst entry level",
+      "bioinformatics scientist entry level",
+      "bioinformatics analyst new grad",
+      "computational biologist entry level",
+      "clinical data scientist entry level",
+      "biostatistician entry level",
+      "genomics analyst entry level",
+      "health informatics analyst entry level",
+      "computational biology researcher new grad",
+      "drug discovery data scientist entry level",
+      "research scientist computational new grad",
+      "software engineer intern 2026",
+      "data scientist intern 2026",
+      "machine learning intern 2026"
+    ],
+
     "greenhouse_boards": [
-      "anthropic", "databricks", "stripe", "vercel",
+      "anthropic", "openai", "databricks", "stripe", "vercel",
       "figma", "airbnb", "twilio", "mongodb", "elastic",
       "lyft", "pinterest", "dropbox", "coinbase", "robinhood",
       "carta", "lattice", "airtable", "asana", "amplitude",
@@ -39,12 +61,78 @@
       "instacart", "sofi", "celonis", "axon",
       "doordashusa", "cloudflare", "brex", "point72",
       "scaleai", "discord", "flatironhealth",
-      "verkada", "samsara", "oscar", "pagerduty", "modernhealth"
+      "verkada", "samsara", "oscar", "pagerduty", "modernhealth",
+      "notion", "linear", "retool", "runway",
+      "mistral", "together-ai", "anyscale",
+      "huggingface", "cohere", "perplexity-ai", "adept",
+      "inflection", "characterai",
+      "tempus", "veeva", "natera", "guardanthealth",
+      "recursionpharmaceuticals", "schrodinger", "10xgenomics",
+      "insitro", "relaytherapeutics", "alector",
+      "flatiron", "komodohealth", "cityblock",
+      "ro", "hims", "nuvation", "arcusbio"
     ],
 
     "lever_companies": [
-      "spotify",
-      "palantir"
-    ]
+      "spotify", "palantir",
+      "benchling", "ginkgo",
+      "netflix", "shopify", "github",
+      "plaid", "rippling",
+      "huggingface", "cohere",
+      "twist-bioscience", "mammoth-biosciences",
+      "scale-ai"
+    ],
+
+    "ashby_slugs": [
+      "perplexity",
+      "cohere",
+      "mistral.ai",
+      "runway-ml",
+      "character",
+      "anyscale",
+      "10xteam"
+    ],
+
+    "workday_companies": [
+      ["pfizer",             1,  "PfizerCareers",              "Pfizer"],
+      ["illumina",           1,  "illumina-careers",           "Illumina"],
+      ["regeneron",          1,  "Careers",                    "Regeneron"],
+      ["roche",              3,  "ROG-A2O-GENE",               "Roche / Genentech"],
+      ["biibhr",             3,  "external",                   "Biogen"],
+      ["bristolmyerssquibb", 5,  "BMS",                        "Bristol Myers Squibb"],
+      ["msd",                5,  "SearchJobs",                 "Merck / MSD"],
+      ["novartis",           3,  "Novartis_Careers",           "Novartis"],
+      ["amgen",              1,  "Careers",                    "Amgen"],
+      ["astrazeneca",        3,  "Careers",                    "AstraZeneca"],
+      ["sanofi",             3,  "SanofiCareers",              "Sanofi"],
+      ["takeda",             502,"External",                   "Takeda"],
+      ["modernatx",          1,  "M_tx",                       "Moderna"],
+      ["abbott",             5,  "abbottcareers",              "Abbott"],
+      ["gh",                 1,  "gh",                         "Guardant Health"],
+      ["genmab",             3,  "Genmab_Careers_Site",        "Genmab"],
+      ["salesforce",         12, "External_Career_Site",       "Salesforce"],
+      ["intel",              1,  "External",                   "Intel"],
+      ["nvidia",             5,  "NVIDIAExternalCareerSite",   "NVIDIA"],
+      ["cisco",              5,  "Cisco_Careers",              "Cisco"],
+      ["adobe",              5,  "external_experienced",       "Adobe"],
+      ["qualcomm",           12, "External",                   "Qualcomm"],
+      ["workday",            5,  "Workday",                    "Workday"],
+      ["thomsonreuters",     5,  "External_Career_Site",       "Thomson Reuters"],
+      ["capitalone",         12, "Capital_One",                "Capital One"],
+      ["vanguard",           5,  "vanguard_external",          "Vanguard"],
+      ["blackrock",          1,  "BlackRock_Professional",     "BlackRock"],
+      ["statestreet",        1,  "Global",                     "State Street"],
+      ["ms",                 5,  "External",                   "Morgan Stanley"],
+      ["generalmotors",      5,  "Careers_GM",                 "General Motors"],
+      ["boeing",             1,  "EXTERNAL_CAREERS",           "Boeing"],
+      ["ngc",                1,  "Northrop_Grumman_External_Site", "Northrop Grumman"],
+      ["globalhr",           5,  "REC_RTX_Ext_Gateway",        "RTX / Raytheon"],
+      ["accenture",          103,"AccentureCareers",           "Accenture"],
+      ["pwc",                3,  "Global_Campus_Careers",      "PwC"],
+      ["guidehouse",         1,  "External",                   "Guidehouse"]
+    ],
+
+    "bamboohr_companies": [],
+    "workable_companies": []
   }
 }
