@@ -68,6 +68,59 @@ function toFrontendJob(j: Job): object {
   };
 }
 
+// Hash a job URL to a 2-char hex bucket — MUST match jobDescriptionBuckets.ts exactly.
+function jobUrlBucket(url: string): string {
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) {
+    hash = ((hash * 31) + url.charCodeAt(i)) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0").slice(0, 2);
+}
+
+function htmlToText(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/?(p|div|li|h[1-6])[^>]*>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&[a-z#0-9]+;/gi, " ")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+// Use Workday's CXS JSON API to get the full job description for a Workday URL.
+// URL format: https://{tenant}.{wd}.myworkdayjobs.com/en-XX/{board}/job/{slug}/{id}
+async function fetchWorkdayJd(url: string): Promise<string | null> {
+  const m = url.match(
+    /^https?:\/\/([^.]+)\.(wd\d+)\.myworkdayjobs\.com(?:\/[^\/]+)?\/([^\/]+)\/(job\/.+?)(?:\?.*)?$/i
+  );
+  if (!m) return null;
+  const [, tenant, wd, board, jobPath] = m;
+  const apiUrl = `https://${tenant}.${wd}.myworkdayjobs.com/wday/cxs/${tenant}/${board}/jobs/${jobPath}`;
+  try {
+    const r = await fetch(apiUrl, {
+      headers: { Accept: "application/json", "User-Agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!r.ok) return null;
+    const data = await r.json() as Record<string, unknown>;
+    const html = (data.jobPostingDescription ?? data.description ?? data.externalDescriptionStr ?? "") as string;
+    const text = htmlToText(html);
+    return text.length > 200 ? text : null;
+  } catch {
+    return null;
+  }
+}
+
 export function jobsRouter(db: DbAdapter) {
   const router = Router();
 
@@ -170,6 +223,77 @@ export function jobsRouter(db: DbAdapter) {
     } catch (e) {
       console.error("[jobs] POST /ingest:", e);
       res.status(500).json({ error: "Ingest failed" });
+    }
+  });
+
+  // Serve full job descriptions grouped by URL hash bucket.
+  // Frontend calls this in loadJobDescriptions() before passing JD to the sidecar.
+  router.get("/description-bucket", requireAuth, async (req: AuthRequest, res) => {
+    const bucket = ((req.query.bucket as string) ?? "").toLowerCase();
+    if (!/^[0-9a-f]{2}$/.test(bucket)) {
+      res.status(400).json({ error: "Invalid bucket — expected 2 hex chars" });
+      return;
+    }
+    try {
+      const allJobs = await db.getJobs({ limit: 50_000 });
+      const result: Record<string, string> = {};
+      for (const job of allJobs) {
+        if (!job.url || !job.description) continue;
+        if (jobUrlBucket(job.url) === bucket) {
+          result[job.url] = job.description;
+        }
+      }
+      res.json(result);
+    } catch (e) {
+      console.error("[jobs] GET /description-bucket:", e);
+      res.status(500).json({ error: "Failed to fetch descriptions" });
+    }
+  });
+
+  // On-demand JD fetcher — called when a job has no stored description.
+  // Tries Workday CXS API first, then falls back to plain HTTP GET + HTML strip.
+  // Works for server-rendered pages (Lever, Greenhouse detail pages, etc.) and
+  // Workday (Angular app — uses their JSON API directly).
+  router.post("/fetch-jd", requireAuth, async (req: AuthRequest, res) => {
+    const { url } = req.body as { url?: string };
+    if (!url || typeof url !== "string") {
+      res.status(400).json({ error: "url required" });
+      return;
+    }
+    try {
+      let description: string | null = null;
+
+      if (url.includes("myworkdayjobs.com")) {
+        description = await fetchWorkdayJd(url);
+      }
+
+      if (!description) {
+        try {
+          const r = await fetch(url, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+              Accept: "text/html,application/xhtml+xml",
+            },
+            signal: AbortSignal.timeout(12_000),
+            redirect: "follow",
+          });
+          if (r.ok) {
+            const html = await r.text();
+            const text = htmlToText(html);
+            if (text.length > 300) description = text;
+          }
+        } catch { /* timeout or network error */ }
+      }
+
+      if (!description) {
+        res.status(422).json({ error: "Could not extract job description from URL" });
+        return;
+      }
+
+      res.json({ description });
+    } catch (e) {
+      console.error("[jobs] POST /fetch-jd:", e);
+      res.status(500).json({ error: "Failed to fetch job description" });
     }
   });
 

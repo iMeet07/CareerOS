@@ -600,6 +600,7 @@ export default function Dashboard({ initialPeriod = "hour" }: DashboardProps) {
       "New Grad": visibleJobs.filter((j) => j.level === "New Grad").length,
       Entry: visibleJobs.filter((j) => j.level === "Entry").length,
       Mid: visibleJobs.filter((j) => j.level === "Mid").length,
+      Senior: visibleJobs.filter((j) => j.level === "Senior").length,
     }),
     [visibleJobs]
   );

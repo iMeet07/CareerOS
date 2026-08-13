@@ -198,8 +198,29 @@ export async function runSingleTailorJob(
   try {
     await assertTailorServerReady(controller.signal);
     const descriptionsByUrl = await loadJobDescriptions([job]);
-    const bucketJd = job.job_url ? descriptionsByUrl[job.job_url] : undefined;
+    let bucketJd = job.job_url ? descriptionsByUrl[job.job_url] : undefined;
     const isManualJob = job.site === "manual" || (job.job_url || "").startsWith("manual://");
+
+    // Auto-fetch full JD from the job URL when the bucket returned nothing.
+    // Handles Workday (CXS JSON API) and server-rendered pages (Lever, etc.).
+    if (!bucketJd && job.job_url && !isManualJob) {
+      try {
+        const autoRes = await fetch("/api/jobs/fetch-jd", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          signal: AbortSignal.timeout(15_000),
+          body: JSON.stringify({ url: job.job_url }),
+        });
+        if (autoRes.ok) {
+          const autoData = await autoRes.json() as { description?: string };
+          if (typeof autoData.description === "string" && autoData.description.length > 200) {
+            bucketJd = autoData.description;
+          }
+        }
+      } catch { /* ignore — fall through to job.summary */ }
+    }
+
     const jd = bucketJd || job.summary || "";
     if (jd.trim().length < MIN_JD_HARD_CHARS) {
       return { ok: false, error: "Job description is too short — paste the full posting (200+ characters).", outcome: "no-jd" };
