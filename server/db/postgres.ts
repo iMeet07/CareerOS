@@ -98,6 +98,18 @@ export class PostgresAdapter implements DbAdapter {
     );
   }
 
+  async getUserPrefs(email: string): Promise<string> {
+    const res = await this.query("SELECT data FROM prefs WHERE user_email=$1", [email]);
+    return (res.rows[0] as { data: string } | undefined)?.data ?? "{}";
+  }
+
+  async setUserPrefs(email: string, data: string): Promise<void> {
+    await this.query(
+      "INSERT INTO prefs (user_email, data) VALUES ($1,$2) ON CONFLICT(user_email) DO UPDATE SET data=EXCLUDED.data",
+      [email, data]
+    );
+  }
+
   async close(): Promise<void> {
     await this.pool.end();
   }

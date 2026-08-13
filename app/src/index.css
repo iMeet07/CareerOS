@@ -3941,6 +3941,8 @@ footer a:hover { color: var(--blue); }
 }
 .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .login-btn:hover:not(:disabled) { opacity: 0.9; }
+.login-toggle-btn { background: none; border: none; color: var(--primary); cursor: pointer; font-size: inherit; padding: 0; text-decoration: underline; }
+.login-toggle-btn:hover { opacity: 0.8; }
 
 
 /* ── Loading screen ──────────────────────────────────────────────── */

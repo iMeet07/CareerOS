@@ -68,6 +68,16 @@ export function jobsRouter(db: DbAdapter) {
       const statusFilter = req.query.status as string | undefined;
       const limitParam = req.query.limit ? parseInt(req.query.limit as string) : undefined;
 
+      if (type === "week") {
+        const allJobs = await db.getJobs({ limit: 50000 });
+        const from = Date.now() - 7 * 24 * 3_600_000;
+        const bucket = allJobs.filter((j) => {
+          if (!j.scraped_at) return false;
+          return new Date(j.scraped_at).getTime() >= from;
+        });
+        return res.json(bucket.map(toFrontendJob));
+      }
+
       if (type === "hour" || type === "today" || type === "yesterday") {
         const allJobs = await db.getJobs({ limit: 5000 });
         const now = Date.now();

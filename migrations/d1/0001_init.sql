@@ -44,6 +44,11 @@ CREATE TABLE IF NOT EXISTS templates (
   created_at  TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS prefs (
+  user_email TEXT PRIMARY KEY REFERENCES users(email) ON DELETE CASCADE,
+  data       TEXT NOT NULL DEFAULT '{}'
+);
+
 CREATE TABLE IF NOT EXISTS tailor_queue (
   id           TEXT PRIMARY KEY,
   job_id       TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,

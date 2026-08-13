@@ -23,6 +23,9 @@ jobs:
       - name: Typecheck server
         run: npx tsc -p server/tsconfig.json --noEmit
 
+      - name: Typecheck frontend
+        run: npx tsc -p app/tsconfig.json --noEmit
+
   # ── Build Docker image ───────────────────────────────────────────────────────
   build-docker:
     name: Build & Push Docker Image

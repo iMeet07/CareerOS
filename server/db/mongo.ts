@@ -27,6 +27,8 @@ const UserSchema = new Schema<User>({
   password_hash: String, name: String, created_at: String,
 });
 
+const PrefsSchema = new Schema({ user_email: { type: String, required: true, unique: true }, data: { type: String, default: "{}" } });
+const PrefsModel = model("Prefs", PrefsSchema);
 const JobModel = model("Job", JobSchema);
 const ContactModel = model("Contact", ContactSchema);
 const TemplateModel = model("Template", TemplateSchema);
@@ -88,6 +90,15 @@ export class MongoAdapter implements DbAdapter {
 
   async createUser(user: User): Promise<void> {
     await UserModel.create(user);
+  }
+
+  async getUserPrefs(email: string): Promise<string> {
+    const doc = await PrefsModel.findOne({ user_email: email }).lean() as { data: string } | null;
+    return doc?.data ?? "{}";
+  }
+
+  async setUserPrefs(email: string, data: string): Promise<void> {
+    await PrefsModel.findOneAndUpdate({ user_email: email }, { data }, { upsert: true });
   }
 
   async close(): Promise<void> {

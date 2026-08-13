@@ -1,4 +1,4 @@
-# Atriveo JD Extractor — server-only image
+# CareerOS — server-only image
 # The frontend is served at application.atriveo.com (no build needed here)
 FROM node:22-alpine AS builder
 WORKDIR /build
@@ -23,7 +23,7 @@ RUN npm install --omit=dev --ignore-scripts
 EXPOSE 3001
 ENV NODE_ENV=production
 ENV DB_TYPE=sqlite
-ENV SQLITE_PATH=/data/atriveo.db
+ENV SQLITE_PATH=/data/careeros.db
 
 VOLUME ["/data"]
 

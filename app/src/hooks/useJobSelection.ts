@@ -48,7 +48,7 @@ async function assertTailorServerReady(): Promise<void> {
     const data = await res.json();
     if (!data.ok) throw new Error("unreachable");
     if (!data.driveMounted) {
-      throw new Error('External drive not mounted. Plug in "Kasliwal v2" and retry.');
+      throw new Error("External drive not mounted. Check your drive connection and retry.");
     }
   } catch (e) {
     const msg = (e as Error).message || String(e);

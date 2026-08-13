@@ -78,7 +78,7 @@ export async function assertTailorServerReady(signal?: AbortSignal): Promise<voi
   const data = await res.json();
   if (!data.ok) throw new Error(tailorUnavailableMessage());
   if (!data.driveMounted) {
-    throw new Error('External drive not mounted. Plug in "Kasliwal v2" and retry.');
+    throw new Error("External drive not mounted. Check your drive connection and retry.");
   }
 }
 

@@ -69,7 +69,7 @@ export class SqliteAdapter implements DbAdapter {
       INSERT INTO contacts (id,user_email,name,company,email,title,confidence,created_at)
       VALUES (@id,@user_email,@name,@company,@email,@title,@confidence,@created_at)
       ON CONFLICT(id) DO UPDATE SET name=excluded.name, email=excluded.email
-    `).run({ company: null, title: null, confidence: null, ...contact });
+    `).run({ ...contact, title: contact.title ?? null, confidence: contact.confidence ?? null });
   }
 
   async deleteContact(id: string, userEmail: string): Promise<void> {
@@ -100,6 +100,18 @@ export class SqliteAdapter implements DbAdapter {
     this.db.prepare(`
       INSERT INTO users (email,password_hash,name,created_at) VALUES (@email,@password_hash,@name,@created_at)
     `).run(user);
+  }
+
+  async getUserPrefs(email: string): Promise<string> {
+    const row = this.db.prepare("SELECT data FROM prefs WHERE user_email=?").get(email) as { data: string } | undefined;
+    return row?.data ?? "{}";
+  }
+
+  async setUserPrefs(email: string, data: string): Promise<void> {
+    this.db.prepare(`
+      INSERT INTO prefs (user_email, data) VALUES (?, ?)
+      ON CONFLICT(user_email) DO UPDATE SET data=excluded.data
+    `).run(email, data);
   }
 
   async close(): Promise<void> {

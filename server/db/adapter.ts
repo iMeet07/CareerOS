@@ -21,6 +21,10 @@ export interface DbAdapter {
   getUserByEmail(email: string): Promise<User | null>;
   createUser(user: User): Promise<void>;
 
+  // Prefs (user exclusion preferences)
+  getUserPrefs(email: string): Promise<string>;
+  setUserPrefs(email: string, data: string): Promise<void>;
+
   close(): Promise<void>;
 }
 

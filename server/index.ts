@@ -8,6 +8,8 @@ import { contactsRouter } from "./routes/contacts.js";
 import { templatesRouter } from "./routes/templates.js";
 import { authRouter } from "./routes/auth.js";
 import { emailfinderRouter } from "./routes/emailfinder.js";
+import { prefsRouter } from "./routes/prefs.js";
+import { trackerRouter } from "./routes/tracker.js";
 
 const PORT = parseInt(process.env.SERVER_PORT ?? "3001");
 
@@ -26,6 +28,15 @@ async function main() {
   app.use("/api/contacts", contactsRouter(db));
   app.use("/api/templates", templatesRouter(db));
   app.use("/api/emailfinder", emailfinderRouter());
+  app.use("/api/prefs", prefsRouter(db));
+  app.use("/api/tracker", trackerRouter());
+
+  // Pipeline refresh stub — the scraper runs as a separate process/service.
+  // Returns a clear message so the Dashboard button shows an actionable error
+  // rather than a generic "Network error".
+  app.post("/api/refresh", (_req, res) => {
+    res.status(503).json({ ok: false, error: "Pipeline refresh is not available via the server — trigger the scraper manually or check your LaunchAgent / systemd service." });
+  });
 
   app.listen(PORT, () => {
     console.log(`CareerOS server running on http://localhost:${PORT} [${process.env.DB_TYPE ?? "sqlite"}]`);
