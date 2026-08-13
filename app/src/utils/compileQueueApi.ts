@@ -1,4 +1,4 @@
-import { getTailorServerBase, tailorSidecarErrorMessage } from "./tailorServer";
+import { getTailorServerBase, tailorAuthHeaders, tailorSidecarErrorMessage } from "./tailorServer";
 
 export interface MongoResumeState {
   status?: "queued" | "running" | "success" | "failed" | "skipped" | null;
@@ -40,12 +40,13 @@ export interface CompileWorker {
 }
 
 function tailorHeaders(): HeadersInit {
-  return { "Content-Type": "application/json" };
+  return { "Content-Type": "application/json", ...tailorAuthHeaders() };
 }
 
 async function sidecarFetch(path: string, init?: RequestInit) {
   const res = await fetch(`${getTailorServerBase()}${path}`, {
     ...init,
+    headers: { ...tailorAuthHeaders(), ...(init?.headers as Record<string, string> | undefined) },
     credentials: "include",
     cache: "no-store",
     signal: AbortSignal.timeout(15000),

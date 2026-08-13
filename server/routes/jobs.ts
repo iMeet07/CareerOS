@@ -131,7 +131,7 @@ const SKILL_PATTERNS: Array<[string, string, RegExp]> = [
   ["Languages","Go",/golang|\bgo lang\b|go developer/i],["Languages","Scala",/\bscala\b/i],
   ["Languages","Kotlin",/kotlin/i],["Languages","C#",/\bc#\b|csharp/i],
   ["Languages","C++",/c\+\+|\bcpp\b/i],["Languages","Rust",/\brust\b/i],
-  ["Languages","Ruby",/\bruby\b/i],[".NET",".NET",/\.net\b|dotnet/i],
+  ["Languages","Ruby",/\bruby\b/i],["Languages",".NET",/\.net\b|dotnet/i],
   ["Languages","SQL",/\bsql\b/i],["Languages","Bash/Shell",/\bbash\b|shell scripting/i],
   // Frameworks
   ["Frameworks & Libraries","React",/\breact\b|react\.js|reactjs/i],
@@ -335,6 +335,27 @@ export function jobsRouter(db: DbAdapter) {
     } catch (e) {
       console.error("[jobs] POST /ingest:", e);
       res.status(500).json({ error: "Ingest failed" });
+    }
+  });
+
+  // Manifest — reports how many descriptions are in the DB and when last scraped.
+  // Frontend uses this to show "JD bucket freshness" in the Compiler Status Strip.
+  router.get("/manifest", requireAuth, async (_req: AuthRequest, res) => {
+    try {
+      const allJobs = await db.getJobs({ limit: 50_000 });
+      const withDesc = allJobs.filter((j) => j.description && j.description.length > 50);
+      const latest = allJobs.reduce((acc, j) => {
+        const t = j.scraped_at ? new Date(j.scraped_at).getTime() : 0;
+        return t > acc ? t : acc;
+      }, 0);
+      res.json({
+        generated_at: latest ? new Date(latest).toISOString() : new Date().toISOString(),
+        descriptions_found: withDesc.length,
+        total_jobs: allJobs.length,
+      });
+    } catch (e) {
+      console.error("[jobs] GET /manifest:", e);
+      res.status(500).json({ error: "Failed to build manifest" });
     }
   });
 

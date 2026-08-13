@@ -122,7 +122,7 @@ export default function EmailFinder() {
 
   async function removeTemplate(id: number) {
     try {
-      const res = await fetch(`/api/templates?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/templates/${id}`, { method: "DELETE" });
       if (res.ok) setTemplates((ts) => ts.filter((t) => t.id !== id));
     } catch { /* ignore */ }
   }
@@ -176,7 +176,7 @@ export default function EmailFinder() {
 
   async function removeContact(id: number) {
     try {
-      const res = await fetch(`/api/contacts?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/contacts/${id}`, { method: "DELETE" });
       if (res.ok) setContacts((cs) => cs.filter((c) => c.id !== id));
     } catch { /* ignore */ }
   }
@@ -197,7 +197,7 @@ export default function EmailFinder() {
     setError("");
     setBulkResult(null);
     try {
-      const res = await fetch("/api/emailfinder-bulk", {
+      const res = await fetch("/api/emailfinder/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ names, company: bulkCompany }),

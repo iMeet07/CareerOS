@@ -27,7 +27,7 @@ export default function Settings() {
     assertTailorServerReady()
       .then(() => setSidecarOk(true))
       .catch(() => setSidecarOk(false));
-    fetch("/job_descriptions/manifest.json", { cache: "no-store" })
+    fetch("/api/jobs/manifest", { cache: "no-store", credentials: "include" })
       .then((r) => r.json())
       .then((m: { generated_at?: string; descriptions_found?: number }) => {
         if (!m.generated_at) return;

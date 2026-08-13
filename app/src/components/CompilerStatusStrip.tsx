@@ -50,7 +50,7 @@ export default function CompilerStatusStrip({
   const [queueStats, setQueueStats] = useState<{ queued: number; running: number; active: number } | null>(null);
 
   useEffect(() => {
-    fetch("/job_descriptions/manifest.json", { cache: "no-store" })
+    fetch("/api/jobs/manifest", { cache: "no-store", credentials: "include" })
       .then((r) => r.json())
       .then((m: BucketManifest) => {
         const age = fmtAge(m.generated_at);

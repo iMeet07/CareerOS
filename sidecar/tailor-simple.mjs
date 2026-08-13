@@ -768,6 +768,51 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // ── Compile-queue stubs ───────────────────────────────────────────────────────
+  // The simple sidecar has no separate compile queue / worker pool.
+  // Return minimal shapes so Dashboard / CompilerStatusStrip don't error.
+
+  if (req.method === "GET" && pathname === "/compile-queue") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ ok: true, jobs: [] }));
+  }
+
+  if (req.method === "GET" && pathname === "/compile-queue/stats") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ ok: true, queued: 0, running: tailorBusy ? 1 : 0, active: tailorBusy ? 1 : 0 }));
+  }
+
+  if (req.method === "GET" && pathname === "/compile-queue/kpis") {
+    const now = new Date();
+    const hourLabel = now.toLocaleTimeString("en-US", { hour: "numeric", hour12: true });
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      ok: true,
+      today: { postings: 0, resumes: 0 },
+      hour:  { postings: 0, resumes: 0, hourLabel, sessionId: null, runAt: null },
+    }));
+  }
+
+  if (req.method === "GET" && (pathname === "/compile-workers" || pathname.startsWith("/compile-workers?"))) {
+    const sidecarWorker = {
+      worker_id: "local-sidecar",
+      hostname: os.hostname(),
+      status: tailorBusy ? "busy" : "idle",
+      drive_mounted: true,
+      out_root: OUT_ROOT,
+      current_job_url: null,
+      last_seen_at: new Date().toISOString(),
+    };
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ ok: true, workers: [sidecarWorker] }));
+  }
+
+  // Stub POST endpoints — return meaningful no-ops
+  if (req.method === "POST" && ["/compile-enqueue", "/compile-enqueue-top", "/compile-enqueue-batch", "/compile-cancel"].includes(pathname)) {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ ok: true, skipped: true, reason: "simple-sidecar: use the Tailor button instead", enqueued: 0, cancelled: false }));
+  }
+
   // POST /open — reveal file/folder in Finder
   if (req.method === "POST" && pathname === "/open") {
     let raw = "";
