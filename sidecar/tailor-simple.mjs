@@ -345,6 +345,20 @@ function runBridge(dir, company, role, onLog, baseResumePath = null) {
   });
 }
 
+// ─── Load resume text from disk (Resume Engine Machine templates) ─────────────
+function loadResumeFromDisk() {
+  const resumesDir = path.join(REM_PATH, "resumes");
+  const files = ["base_SWE_SDE.md", "base_MLE_AI.md", "base_DS_Research.md", "base_DE.md", "base_DA_BI.md"];
+  const parts = [];
+  for (const f of files) {
+    try {
+      const text = fs.readFileSync(path.join(resumesDir, f), "utf8").trim();
+      if (text) parts.push(`--- ${f} ---\n${text}`);
+    } catch { /* file missing, skip */ }
+  }
+  return parts.join("\n\n");
+}
+
 // ─── Per-job tailor ───────────────────────────────────────────────────────────
 async function tailorOne(job, resumeText, model, seq, dateDir, ctx) {
   const { sendPhase, log: onLog } = ctx;
@@ -375,13 +389,21 @@ async function tailorOne(job, resumeText, model, seq, dateDir, ctx) {
   fs.writeFileSync(path.join(dir, "meta.json"), JSON.stringify(meta, null, 2));
 
   // Build the context: resume text + bullet bank
+  // If the frontend didn't send a resume, read templates directly from Resume Engine Machine.
+  let effectiveResume = resumeText?.trim() || "";
+  if (!effectiveResume) {
+    effectiveResume = loadResumeFromDisk();
+    if (effectiveResume) onLog?.("think", "Resume loaded from Resume Engine Machine templates");
+    else onLog?.("warn", "No resume text — paste your resume in Settings or check RESUME_ENGINE_PATH");
+  }
+
   let bankSummary = "";
   if (BANK.roles.length || BANK.projects.length) {
     bankSummary = bankToPrompt(BANK);
     onLog?.("think", `Bank: ${BANK.roles.length} roles · ${BANK.projects.length} projects`);
   }
-  const context = resumeText
-    ? `${resumeText.trim()}\n\n--- BULLET BANK (additional variants) ---\n${bankSummary}`
+  const context = effectiveResume
+    ? `${effectiveResume}\n\n--- BULLET BANK (additional variants) ---\n${bankSummary}`
     : bankSummary || "(no resume text provided)";
 
   try {
