@@ -30,7 +30,7 @@ import { tailorPhaseProgress } from "../utils/tailorProgress";
 import { estDateKey, estHourLabel } from "../utils/estDate";
 import { fetchPipelineKpis, type PipelineKpis } from "../utils/compileQueueApi";
 import CompilerStatusStrip from "../components/CompilerStatusStrip";
-type LevelFilter = "all" | "New Grad" | "Entry" | "Mid";
+type LevelFilter = "all" | "New Grad" | "Entry" | "Mid" | "Senior";
 type RunCard = RunEntry & {
   count: number;
   targetPeriod: Period | null;
@@ -50,7 +50,7 @@ const LOCATION_FILTERS = [
   { key: "Seattle",  match: (loc: string) => loc.includes("seattle") },
   { key: "NC",       match: (loc: string) => loc.includes(", nc") || loc.includes("north carolina") },
 ];
-const LEVEL_FILTERS: LevelFilter[] = ["all", "New Grad", "Entry", "Mid"];
+const LEVEL_FILTERS: LevelFilter[] = ["all", "New Grad", "Entry", "Mid", "Senior"];
 
 // Filter the feed by tailor outcome. The many TailorOutcomeKind values are
 // grouped into a few user-friendly buckets that match what the table shows.
@@ -130,17 +130,17 @@ function formatFeedAge(iso?: string | null): string {
   return formatRunTime(iso);
 }
 
-async function fetchJobFeed(type: string): Promise<Job[]> {
+async function fetchJobFeed(type: string): Promise<{ jobs: Job[]; status: number }> {
   try {
     // Bust browser + edge caches so the hourly-polled feed actually reflects the
     // latest deploy. Without no-store + a cache-buster, a cached /api/jobs
     // response makes the frontend look frozen even after new data is published.
     const res = await fetch(`/api/jobs?type=${type}&t=${Date.now()}`, { cache: "no-store" });
-    if (!res.ok) return [];
+    if (!res.ok) return { jobs: [], status: res.status };
     const data = await res.json();
-    return Array.isArray(data) ? data as Job[] : [];
+    return { jobs: Array.isArray(data) ? data as Job[] : [], status: res.status };
   } catch {
-    return [];
+    return { jobs: [], status: 0 };
   }
 }
 
@@ -229,16 +229,24 @@ export default function Dashboard({ initialPeriod = "hour" }: DashboardProps) {
   };
 
   const refreshJobFeeds = useCallback(async (opts: { initial?: boolean } = {}) => {
-    const [hourList, todayList, yesterdayList, runsRes, metaRes] = await Promise.all([
+    const [hourResult, todayResult, yesterdayResult, runsRes, metaRes] = await Promise.all([
       fetchJobFeed("hour"),
       fetchJobFeed("today"),
       fetchJobFeed("yesterday"),
       fetch("/api/jobs?type=runs").then(async (r) => (r.ok ? r.json() : [])).catch(() => []),
       fetch("/metadata.json", { cache: "no-store" }).catch(() => null),
     ]);
+    const hourList = hourResult.jobs;
+    const todayList = todayResult.jobs;
+    const yesterdayList = yesterdayResult.jobs;
 
     if (!hourList.length && !todayList.length && !yesterdayList.length) {
-      setFeedFetchError("Could not load job feeds — try signing in again or refresh the page.");
+      const authed = hourResult.status !== 401 && hourResult.status !== 0;
+      setFeedFetchError(
+        authed
+          ? "No jobs yet — run the scraper to populate your feed."
+          : "Session expired — please sign in again."
+      );
     } else {
       setFeedFetchError("");
     }
@@ -512,7 +520,12 @@ export default function Dashboard({ initialPeriod = "hour" }: DashboardProps) {
 
   const filtered = useMemo(() => {
     let jobs = [...visibleJobs];
-    if (levelFilter !== "all") jobs = jobs.filter((j) => j.level === levelFilter);
+    // "all" shows everything except Senior (which requires an explicit click to see).
+    if (levelFilter === "all") {
+      jobs = jobs.filter((j) => j.level !== "Senior");
+    } else {
+      jobs = jobs.filter((j) => j.level === levelFilter);
+    }
     if (tailorFilter !== "all") {
       jobs = jobs.filter(
         (j) => tailorFilterBucket(tailorStatus.getRecordForJob(j)) === tailorFilter,

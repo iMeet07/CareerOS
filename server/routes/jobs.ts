@@ -8,17 +8,27 @@ import type { Job } from "../types.js";
 // Map server Job → frontend Job here so the UI works without touching the DB.
 
 function inferLevel(title: string, desc: string): string {
-  const text = `${title} ${desc}`.toLowerCase();
+  const t = title.toLowerCase();
+  const text = `${t} ${desc}`.toLowerCase();
+  if (/\b(staff|principal|director|vp\b|vice\s+president|head\s+of|distinguished|fellow|partner)\b/.test(t)) return "Senior";
+  if (/\b(senior|sr\.?\s)/i.test(t)) return "Senior";
   if (/new\s*grad|recent\s*grad|entry[- ]?level.*0[- ]?(?:to|-)?\s*[12]\s*year|\b0[- ]?to[- ]?1\s*year/.test(text)) return "New Grad";
   if (/\b(?:0|1|1[- ]2|1[- ]3|one|two|2)\s*(?:to|\+)?\s*years?\s*(?:of\s*)?exp|\bjunior\b|\bassociate\b/.test(text)) return "Entry";
   return "Mid";
+}
+
+// Python datetime.isoformat() emits microseconds (6 digits) without a Z.
+// JS Date can only parse ≤3 fractional digits; 6-digit strings shift the time by hours.
+// Truncate to ms and append Z so the timestamp is always treated as UTC.
+function parseTs(ts: string): number {
+  return new Date(ts.slice(0, 23) + "Z").getTime();
 }
 
 // Round scraped_at to the nearest 30-minute boundary (matches LaunchAgent interval)
 // so all jobs from the same scraper run share a session_id.
 function toSessionId(scrapedAt: string): string {
   try {
-    const d = new Date(scrapedAt);
+    const d = new Date(scrapedAt.slice(0, 23) + "Z");
     const mins = d.getUTCMinutes() >= 30 ? 30 : 0;
     d.setUTCMinutes(mins, 0, 0);
     return d.toISOString().slice(0, 16); // "2026-08-12T14:30"
@@ -73,7 +83,7 @@ export function jobsRouter(db: DbAdapter) {
         const from = Date.now() - 7 * 24 * 3_600_000;
         const bucket = allJobs.filter((j) => {
           if (!j.scraped_at) return false;
-          return new Date(j.scraped_at).getTime() >= from;
+          return parseTs(j.scraped_at) >= from;
         });
         return res.json(bucket.map(toFrontendJob));
       }
@@ -91,7 +101,7 @@ export function jobsRouter(db: DbAdapter) {
         const [from, to] = cutoffs[type];
         const bucket = allJobs.filter((j) => {
           if (!j.scraped_at) return false;
-          const t = new Date(j.scraped_at).getTime();
+          const t = parseTs(j.scraped_at);
           return t >= from && t < to;
         });
 
