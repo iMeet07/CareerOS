@@ -213,21 +213,101 @@ async function callOllama(model, jd, context, onLog) {
   throw new Error(`Model output truncated even at ${budgets.at(-1)} tokens — JD may be too long`);
 }
 
+// ─── Refinement Ollama prompt ─────────────────────────────────────────────────
+// Used for rounds 2-5: Ollama sees full JD + current resume + missing keywords.
+const REFINE_SYSTEM = `You are an expert resume optimizer doing a targeted ATS refinement pass.
+The resume did not reach the 95% ATS target. Your job: surgical rewrites only.
+
+RULES:
+- Study the full job description to understand HOW each missing keyword is actually used in context.
+- Find the bullet in the current resume that is most relevant to that context.
+- Rewrite it to naturally include the keyword — rephrase existing experience, never fabricate.
+- For keywords that genuinely don't fit any bullet, add them to skills_to_add only.
+- Only rewrite bullets that actually need to change. Leave the rest untouched.
+- Forbidden: "leveraged", "spearheaded", "utilized", "responsible for", "cutting-edge".
+- Good verbs: Built, Engineered, Deployed, Optimized, Automated, Designed, Scaled, Reduced.
+
+Return ONLY valid JSON — no markdown, no prose, nothing outside the JSON.`;
+
+const REFINE_SCHEMA = {
+  type: "object",
+  required: ["bullet_rewrites", "skills_to_add"],
+  properties: {
+    bullet_rewrites: {
+      type: "array", maxItems: 10,
+      items: {
+        type: "object",
+        required: ["before", "after"],
+        properties: {
+          before: { type: "string" },
+          after:  { type: "string" },
+        },
+      },
+    },
+    skills_to_add: { type: "array", items: { type: "string" }, maxItems: 15 },
+  },
+};
+
+async function callOllamaRefinement(model, jd, resumeMd, missingKeywords, atsScore, round, onLog) {
+  const userPrompt = [
+    `REFINEMENT ROUND ${round}/5`,
+    `Current ATS Score: ${atsScore}%  →  Target: 95%`,
+    `Keywords the ATS scorer still cannot find in the resume:`,
+    missingKeywords.map(k => `  - ${k}`).join("\n"),
+    ``,
+    `=== FULL JOB DESCRIPTION (use this to understand each keyword's context) ===`,
+    jd.trim(),
+    ``,
+    `=== CURRENT RESUME (find the right bullet to improve) ===`,
+    resumeMd.trim(),
+    ``,
+    `For each missing keyword: read how the JD uses it, then rewrite the most relevant bullet to include it naturally.`,
+  ].join("\n");
+
+  const budgets = [2048, 3072];
+  for (const budget of budgets) {
+    const payload = {
+      model,
+      messages: [
+        { role: "system", content: REFINE_SYSTEM },
+        { role: "user",   content: userPrompt },
+      ],
+      stream: false,
+      think: false,
+      format: REFINE_SCHEMA,
+      options: { temperature: 0.1, num_predict: budget, num_ctx: 16384 },
+    };
+    const t0 = Date.now();
+    onLog?.("step", `Refinement · Ollama round ${round}/5 · ${missingKeywords.length} gaps · budget=${budget} tokens…`);
+    const data = await ollamaRequest(payload);
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    if (data.done_reason === "length") {
+      onLog?.("warn", `Refinement truncated at ${budget} tokens after ${elapsed}s — retrying`);
+      continue;
+    }
+    onLog?.("result", `Refinement Ollama done in ${elapsed}s`);
+    return JSON.parse(data.message.content);
+  }
+  throw new Error("Refinement output truncated — resume or JD may be too long");
+}
+
 // ─── Resume Engine Machine bridge ────────────────────────────────────────────
 const BRIDGE_PY = path.join(SCRIPT_DIR, "resume_bridge.py");
 const REM_PATH  = process.env.RESUME_ENGINE_PATH || path.join(os.homedir(), "Resume Engine Machine");
 
-function runBridge(dir, company, role, onLog) {
+function runBridge(dir, company, role, onLog, baseResumePath = null) {
   return new Promise((resolve) => {
     const env = { ...process.env, RESUME_ENGINE_PATH: REM_PATH };
-    const proc = spawn("python3", [
+    const args = [
       BRIDGE_PY,
       "--jd",        path.join(dir, "jd.txt"),
       "--optimizer", path.join(dir, "optimizer.json"),
       "--outdir",    dir,
       "--company",   company,
       "--role",      role,
-    ], { env });
+    ];
+    if (baseResumePath) args.push("--base-resume", baseResumePath);
+    const proc = spawn("python3", args, { env });
 
     let stdout = "";
     let stderr = "";
@@ -361,17 +441,76 @@ async function tailorOne(job, resumeText, model, seq, dateDir, ctx) {
       bullet_rewrites: ai.bullet_rewrites,
     };
 
-    // Phase 2: assemble tailored resume + generate PDF via Resume Engine Machine
-    onLog?.("step", "Phase 2/2 · Assemble — select template → apply rewrites → inject keywords → PDF");
-    const bridge = await runBridge(dir, company, role, onLog);
+    // Phase 2: assemble tailored resume + ATS refinement loop (up to 5 rounds)
+    onLog?.("step", "Phase 2 · Assemble — select template → apply rewrites → inject keywords → ATS loop → PDF");
+    const ATS_TARGET = 95;
+    const MAX_ROUNDS = 5;
+
+    let bridge = await runBridge(dir, company, role, onLog);
+    const firstBridge = bridge; // preserve role_type + template from round 1
 
     if (bridge?.ok) {
-      onLog?.("result", `Role type: ${bridge.role_type} → template: ${bridge.template}`);
+      onLog?.("result", `Round 1 · ATS ${bridge.ats_score}%${bridge.ats_score >= ATS_TARGET ? " ✓ target reached" : ` · ${bridge.keywords_missing?.length ?? 0} gaps remain`}`);
+
+      // Refinement loop — Ollama sees full JD + current resume + missing keywords each round
+      if (bridge.ats_score < ATS_TARGET) {
+        let currentResumePath = bridge.resume_md;
+
+        for (let round = 2; round <= MAX_ROUNDS; round++) {
+          const missing = bridge.keywords_missing || [];
+          if (!missing.length) {
+            onLog?.("result", "All JD keywords matched — stopping refinement early");
+            break;
+          }
+
+          sendPhase("refining");
+          onLog?.("step", `━━ Refinement ${round}/${MAX_ROUNDS} · ATS ${bridge.ats_score}% · ${missing.length} gap(s) ━━`);
+          onLog?.("think", `Missing: ${missing.slice(0, 15).join(", ")}`);
+
+          try {
+            const currentResumeMd = fs.readFileSync(currentResumePath, "utf8");
+            const refinement = await callOllamaRefinement(
+              model, jd, currentResumeMd, missing, bridge.ats_score, round, onLog
+            );
+
+            fs.writeFileSync(path.join(dir, "optimizer.json"), JSON.stringify({
+              bullet_rewrites: refinement.bullet_rewrites || [],
+              missing_keywords: missing,
+              skills_to_add: refinement.skills_to_add || [],
+            }, null, 2));
+
+            sendPhase("assembling");
+            const nextBridge = await runBridge(dir, company, role, onLog, currentResumePath);
+
+            if (nextBridge?.ok) {
+              const improved = nextBridge.ats_score - bridge.ats_score;
+              const sign = improved >= 0 ? "+" : "";
+              onLog?.("result", `Round ${round} · ATS ${nextBridge.ats_score}% (${sign}${improved})${nextBridge.ats_score >= ATS_TARGET ? " ✓ target reached" : ""}`);
+              bridge = nextBridge;
+              currentResumePath = nextBridge.resume_md;
+              if (bridge.ats_score >= ATS_TARGET) break;
+            } else {
+              onLog?.("warn", `Bridge failed in round ${round} — keeping round ${round - 1} result`);
+              break;
+            }
+          } catch (e) {
+            onLog?.("warn", `Refinement round ${round} error: ${e.message} — keeping previous result`);
+            break;
+          }
+        }
+
+        if (bridge.ats_score < ATS_TARGET) {
+          onLog?.("result", `Best effort after ${MAX_ROUNDS} rounds · final ATS ${bridge.ats_score}%`);
+        }
+      }
+
+      // Final result
+      onLog?.("result", `Role type: ${firstBridge?.role_type} → template: ${firstBridge?.template}`);
       onLog?.("result", `Rewrites applied: ${bridge.rewrites_applied} · Keywords injected: ${bridge.keywords_injected}`);
-      onLog?.("result", `ATS score (internal scorer): ${bridge.ats_score}%`);
-      result.explain.ats_internal  = bridge.ats_score;
-      result.explain.role_type     = bridge.role_type;
-      result.explain.template      = bridge.template;
+      onLog?.("result", `Final ATS (internal scorer): ${bridge.ats_score}%`);
+      result.explain.ats_internal     = bridge.ats_score;
+      result.explain.role_type        = firstBridge?.role_type;
+      result.explain.template         = firstBridge?.template;
       result.explain.keywords_missing = bridge.keywords_missing;
 
       if (bridge.pdf_ok) {
@@ -390,7 +529,7 @@ async function tailorOne(job, resumeText, model, seq, dateDir, ctx) {
       onLog?.("warn", "Bridge did not run — check RESUME_ENGINE_PATH in .env. Falling back to ATS report only.");
     }
 
-    onLog?.("result", `✓ Complete · ATS ${ai.ats_before}→${ai.ats_after} · ${dir}`);
+    onLog?.("result", `✓ Complete · ATS ${ai.ats_before}→${ai.ats_after} (internal: ${bridge?.ats_score ?? "?"}%) · ${dir}`);
   } catch (e) {
     result.status = "ai-failed";
     result.error = String(e.message || e);

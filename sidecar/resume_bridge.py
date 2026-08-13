@@ -201,7 +201,7 @@ def apply_rewrites(resume_md: str, rewrites: list[dict]) -> tuple[str, int]:
 
 
 def run(jd_path: str, optimizer_path: str, outdir: str,
-        company: str, role: str) -> dict:
+        company: str, role: str, base_resume: str | None = None) -> dict:
 
     result: dict = {"ok": False}
 
@@ -217,19 +217,28 @@ def run(jd_path: str, optimizer_path: str, outdir: str,
         result["error"] = f"Could not read inputs: {e}"
         return result
 
-    # 1. Detect role type → select base template
-    role_type  = detect_role_type(jd_text)
-    domain     = detect_domain(jd_text)
-    tmpl_name  = recommend_template(role_type, domain)
-    tmpl_file  = os.path.join(RESUMES, TEMPLATE_FILES.get(tmpl_name, "base_MLE_AI.md"))
+    # 1. Detect role type → select base template (or use provided base resume for refinement rounds)
+    role_type = detect_role_type(jd_text)
+    domain    = detect_domain(jd_text)
+    tmpl_name = recommend_template(role_type, domain)
 
-    try:
-        resume_md = Path(tmpl_file).read_text(encoding="utf-8")
-    except Exception as e:
-        result["error"] = f"Could not read template '{tmpl_file}': {e}"
-        return result
+    if base_resume and Path(base_resume).exists():
+        # Refinement round: build on the previous round's output, not the fresh template
+        try:
+            resume_md = Path(base_resume).read_text(encoding="utf-8")
+            result["using_base_resume"] = True
+        except Exception as e:
+            result["error"] = f"Could not read base resume '{base_resume}': {e}"
+            return result
+    else:
+        tmpl_file = os.path.join(RESUMES, TEMPLATE_FILES.get(tmpl_name, "base_MLE_AI.md"))
+        try:
+            resume_md = Path(tmpl_file).read_text(encoding="utf-8")
+        except Exception as e:
+            result["error"] = f"Could not read template '{tmpl_file}': {e}"
+            return result
 
-    # 2. Apply Ollama bullet rewrites (fuzzy match into template)
+    # 2. Apply Ollama bullet rewrites (fuzzy match into current resume)
     rewrites = optimizer.get("bullet_rewrites", [])
     resume_md, rewrites_applied = apply_rewrites(resume_md, rewrites)
 
@@ -237,7 +246,7 @@ def run(jd_path: str, optimizer_path: str, outdir: str,
     missing   = optimizer.get("missing_keywords", []) + optimizer.get("skills_to_add", [])
     resume_md, injected = inject_keywords(resume_md, missing)
 
-    # 4. ATS score verification
+    # 4. ATS score verification — return ALL missing keywords so the refinement loop sees the full gap
     jd_keywords = score_jd_keywords(jd_text)
     found, still_missing, ats_score = match_resume(resume_md, jd_keywords)
 
@@ -249,7 +258,7 @@ def run(jd_path: str, optimizer_path: str, outdir: str,
         "keywords_injected": injected,
         "ats_score":         ats_score,
         "keywords_found":    len(found),
-        "keywords_missing":  sorted(still_missing)[:10],
+        "keywords_missing":  sorted(still_missing),   # full list, no cap
     })
 
     # 5. Save tailored resume.md
@@ -282,14 +291,16 @@ def run(jd_path: str, optimizer_path: str, outdir: str,
 
 def main():
     parser = argparse.ArgumentParser(description="CareerOS ↔ Resume Engine Machine bridge")
-    parser.add_argument("--jd",        required=True, help="Path to jd.txt")
-    parser.add_argument("--optimizer", required=True, help="Path to optimizer.json")
-    parser.add_argument("--outdir",    required=True, help="Output directory")
-    parser.add_argument("--company",   required=True)
-    parser.add_argument("--role",      required=True)
+    parser.add_argument("--jd",          required=True, help="Path to jd.txt")
+    parser.add_argument("--optimizer",   required=True, help="Path to optimizer.json")
+    parser.add_argument("--outdir",      required=True, help="Output directory")
+    parser.add_argument("--company",     required=True)
+    parser.add_argument("--role",        required=True)
+    parser.add_argument("--base-resume", default=None,
+                        help="Existing resume.md to build on instead of the base template (refinement rounds)")
     args = parser.parse_args()
 
-    out = run(args.jd, args.optimizer, args.outdir, args.company, args.role)
+    out = run(args.jd, args.optimizer, args.outdir, args.company, args.role, args.base_resume)
     print(json.dumps(out))
 
 
