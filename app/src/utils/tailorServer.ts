@@ -1,3 +1,9 @@
+/** x-tailor-token header for all sidecar requests — value comes from VITE_TAILOR_TOKEN in .env */
+export function tailorAuthHeaders(): Record<string, string> {
+  const token = (import.meta.env.VITE_TAILOR_TOKEN as string | undefined) ?? "";
+  return token ? { "x-tailor-token": token } : {};
+}
+
 /** Local sidecar in dev; same-origin /tailor relay on production (Pages Function → tunnel). */
 export function getTailorServerBase(): string {
   if (typeof window === "undefined") return "http://localhost:8787";

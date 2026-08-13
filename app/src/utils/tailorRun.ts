@@ -6,7 +6,7 @@ import type { ResumeArtifacts } from "./resumeDiff";
 import { outcomeFromError, outcomeFromServerStatus } from "./tailorOutcome";
 import { captureTailorStreamEvent, resetTailorLogCapture, trimTailorLogs } from "./tailorLogCapture";
 import { loadJobDescriptions } from "./jobDescriptionBuckets";
-import { getTailorServerBase, tailorUnavailableMessage } from "./tailorServer";
+import { getTailorServerBase, tailorAuthHeaders, tailorUnavailableMessage } from "./tailorServer";
 
 const MIN_JD_HARD_CHARS = 200;
 const MIN_JD_IDEAL_CHARS = 400;
@@ -67,6 +67,7 @@ export async function assertTailorServerReady(signal?: AbortSignal): Promise<voi
     const res = await fetch(`${base}/health`, {
       signal: signal ?? AbortSignal.timeout(8000),
       credentials: "include",
+      headers: tailorAuthHeaders(),
     });
     if (res.status === 503) {
       const data = await res.json().catch(() => ({}));
@@ -103,7 +104,7 @@ export async function checkJobOnDisk(job: Job): Promise<{ found: boolean; pdfPat
   try {
     const res = await fetch(`${getTailorServerBase()}/check-job`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...tailorAuthHeaders() },
       credentials: "include",
       signal: AbortSignal.timeout(8000),
       body: JSON.stringify({ company: job.company || "", title: job.title || "" }),
@@ -137,7 +138,7 @@ export async function fetchResumeArtifacts(dir: string): Promise<ResumeArtifacts
   try {
     const res = await fetch(
       `${getTailorServerBase()}/resume-artifacts?dir=${encodeURIComponent(dir)}&t=${Date.now()}`,
-      { cache: "no-store", credentials: "include", signal: AbortSignal.timeout(15000) },
+      { cache: "no-store", credentials: "include", signal: AbortSignal.timeout(15000), headers: tailorAuthHeaders() },
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -165,6 +166,7 @@ export async function listTailoredResumes(): Promise<TailoredResumeOnDisk[]> {
       cache: "no-store",
       credentials: "include",
       signal: AbortSignal.timeout(12000),
+      headers: tailorAuthHeaders(),
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -177,7 +179,7 @@ export async function listTailoredResumes(): Promise<TailoredResumeOnDisk[]> {
 export async function openTailorPath(targetPath: string): Promise<void> {
   const res = await fetch(`${getTailorServerBase()}/open`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...tailorAuthHeaders() },
     credentials: "include",
     body: JSON.stringify({ path: targetPath }),
   });
@@ -243,7 +245,7 @@ export async function runSingleTailorJob(
 
     const res = await fetch(`${getTailorServerBase()}/tailor`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...tailorAuthHeaders() },
       credentials: "include",
       signal: controller.signal,
       body: JSON.stringify({
