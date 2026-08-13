@@ -123,15 +123,125 @@ async function fetchWorkdayJd(url: string): Promise<string | null> {
   }
 }
 
+// ─── Skills frequency patterns (mirrors Skills.tsx RESUME_PATTERNS) ───────────
+const SKILL_PATTERNS: Array<[string, string, RegExp]> = [
+  // Languages
+  ["Languages","Python",/python/i],["Languages","Java",/\bjava\b/i],
+  ["Languages","JavaScript",/javascript/i],["Languages","TypeScript",/typescript/i],
+  ["Languages","Go",/golang|\bgo lang\b|go developer/i],["Languages","Scala",/\bscala\b/i],
+  ["Languages","Kotlin",/kotlin/i],["Languages","C#",/\bc#\b|csharp/i],
+  ["Languages","C++",/c\+\+|\bcpp\b/i],["Languages","Rust",/\brust\b/i],
+  ["Languages","Ruby",/\bruby\b/i],[".NET",".NET",/\.net\b|dotnet/i],
+  ["Languages","SQL",/\bsql\b/i],["Languages","Bash/Shell",/\bbash\b|shell scripting/i],
+  // Frameworks
+  ["Frameworks & Libraries","React",/\breact\b|react\.js|reactjs/i],
+  ["Frameworks & Libraries","Node.js",/node\.js|nodejs/i],
+  ["Frameworks & Libraries","Spring Boot",/spring boot/i],
+  ["Frameworks & Libraries","FastAPI",/fastapi/i],["Frameworks & Libraries","Django",/django/i],
+  ["Frameworks & Libraries","Flask",/\bflask\b/i],
+  ["Frameworks & Libraries","Next.js",/next\.js|nextjs/i],
+  ["Frameworks & Libraries","GraphQL",/graphql/i],
+  ["Frameworks & Libraries","PyTorch",/pytorch/i],["Frameworks & Libraries","TensorFlow",/tensorflow/i],
+  ["Frameworks & Libraries","Pandas",/pandas/i],["Frameworks & Libraries","Scikit-learn",/scikit[- ]learn|sklearn/i],
+  // Cloud
+  ["Cloud","AWS",/\baws\b|amazon web services/i],["Cloud","GCP",/\bgcp\b|google cloud/i],
+  ["Cloud","Azure",/\bazure\b|microsoft azure/i],["Cloud","Lambda",/\blambda\b/i],
+  ["Cloud","S3",/\bs3\b/i],["Cloud","DynamoDB",/dynamodb/i],["Cloud","Kubernetes",/kubernetes|\bk8s\b/i],
+  ["Cloud","EC2",/\bec2\b/i],["Cloud","EKS",/\beks\b/i],
+  // Backend & Architecture
+  ["Backend & Architecture","Microservices",/microservices/i],
+  ["Backend & Architecture","REST API",/rest api|restful/i],
+  ["Backend & Architecture","Kafka",/kafka/i],["Backend & Architecture","gRPC",/\bgrpc\b/i],
+  ["Backend & Architecture","System Design",/system design/i],
+  ["Backend & Architecture","Distributed Systems",/distributed systems/i],
+  ["Backend & Architecture","Caching",/\bcaching\b/i],
+  // DevOps
+  ["DevOps & Infrastructure","Docker",/docker/i],
+  ["DevOps & Infrastructure","Terraform",/terraform/i],
+  ["DevOps & Infrastructure","CI/CD",/ci\/cd|continuous integration|continuous deploy/i],
+  ["DevOps & Infrastructure","GitHub Actions",/github actions/i],
+  ["DevOps & Infrastructure","Helm",/\bhelm\b/i],["DevOps & Infrastructure","Linux",/linux/i],
+  ["DevOps & Infrastructure","Prometheus",/prometheus/i],["DevOps & Infrastructure","Grafana",/grafana/i],
+  // Data & Storage
+  ["Data & Storage","PostgreSQL",/postgresql|postgres/i],["Data & Storage","MySQL",/mysql/i],
+  ["Data & Storage","MongoDB",/mongodb/i],["Data & Storage","Redis",/redis/i],
+  ["Data & Storage","Elasticsearch",/elasticsearch|opensearch/i],
+  ["Data & Storage","BigQuery",/bigquery/i],["Data & Storage","Snowflake",/snowflake/i],
+  ["Data & Storage","Spark",/apache spark|pyspark|\bspark\b/i],
+  ["Data & Storage","Airflow",/airflow/i],["Data & Storage","dbt",/\bdbt\b/i],
+  ["Data & Storage","ETL/ELT",/\betl\b|\belt\b|data pipeline/i],
+  ["Data & Storage","Vector DB",/vector database|vector db|pinecone|weaviate|chroma/i],
+  // AI & ML
+  ["AI & Machine Learning","LLM",/\bllm\b|large language model/i],
+  ["AI & Machine Learning","GenAI",/generative ai|gen ai|\bgenai\b/i],
+  ["AI & Machine Learning","RAG",/\brag\b|retrieval.augmented/i],
+  ["AI & Machine Learning","Machine Learning",/machine learning|\bml\b model/i],
+  ["AI & Machine Learning","Deep Learning",/deep learning/i],
+  ["AI & Machine Learning","NLP",/\bnlp\b|natural language processing/i],
+  ["AI & Machine Learning","Hugging Face",/hugging face|huggingface|transformers/i],
+  ["AI & Machine Learning","LangChain",/langchain/i],["AI & Machine Learning","OpenAI",/openai/i],
+  ["AI & Machine Learning","Fine-tuning",/fine.tun/i],
+  ["AI & Machine Learning","Embeddings",/embeddings|vector embeddings/i],
+  // Security
+  ["Security","OAuth/OIDC",/oauth|\boidc\b|openid connect/i],
+  ["Security","JWT",/\bjwt\b/i],["Security","TLS/SSL",/\btls\b|\bssl\b/i],
+  ["Security","IAM",/aws iam|iam roles|identity.*access management/i],
+  ["Security","RBAC",/\brbac\b|role.based access/i],
+];
+
+function buildSkillsSummary(jobs: Job[]): object {
+  const counts: Record<string, Record<string, number>> = {};
+  for (const [cat, skill] of SKILL_PATTERNS) {
+    if (!counts[cat]) counts[cat] = {};
+    counts[cat][skill] = 0;
+  }
+  let analyzed = 0;
+  for (const job of jobs) {
+    const text = job.description || "";
+    if (!text) continue;
+    analyzed++;
+    for (const [cat, skill, rx] of SKILL_PATTERNS) {
+      if (rx.test(text)) counts[cat][skill]++;
+    }
+  }
+  // Sort each category's skills by count desc, drop zeros
+  const categories: Record<string, { color: string; skills: Record<string, number> }> = {};
+  const CAT_COLOR: Record<string, string> = {
+    "Languages":               "oklch(0.66 0.19 255)",
+    "Frameworks & Libraries":  "oklch(0.70 0.16 240)",
+    "Cloud":                   "oklch(0.62 0.18 265)",
+    "Backend & Architecture":  "oklch(0.68 0.17 250)",
+    "DevOps & Infrastructure": "oklch(0.64 0.20 260)",
+    "Data & Storage":          "oklch(0.72 0.15 235)",
+    "AI & Machine Learning":   "oklch(0.75 0.18 255)",
+    "Security":                "oklch(0.60 0.17 270)",
+  };
+  for (const [cat, skills] of Object.entries(counts)) {
+    const sorted = Object.entries(skills)
+      .filter(([, n]) => n > 0)
+      .sort(([, a], [, b]) => b - a);
+    if (sorted.length) {
+      categories[cat] = { color: CAT_COLOR[cat] ?? "oklch(0.66 0.19 255)", skills: Object.fromEntries(sorted) };
+    }
+  }
+  return { generated_at: new Date().toISOString(), total_analyzed: analyzed, categories };
+}
+
 export function jobsRouter(db: DbAdapter) {
   const router = Router();
 
-  // Main feed endpoint — supports ?type=hour|today|yesterday|runs for the dashboard
+  // Main feed endpoint — supports ?type=hour|today|yesterday|runs|skills_summary for the dashboard
   router.get("/", requireAuth, async (req: AuthRequest, res) => {
     try {
       const type = req.query.type as string | undefined;
       const statusFilter = req.query.status as string | undefined;
-      const limitParam = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const rawLimit = req.query.limit as string | undefined;
+      const limitParam = rawLimit ? (parseInt(rawLimit) || undefined) : undefined;
+
+      if (type === "skills_summary") {
+        const allJobs = await db.getJobs({ limit: 50_000 });
+        return res.json(buildSkillsSummary(allJobs));
+      }
 
       if (type === "week") {
         const allJobs = await db.getJobs({ limit: 50000 });
@@ -258,8 +368,12 @@ export function jobsRouter(db: DbAdapter) {
   // Workday (Angular app — uses their JSON API directly).
   router.post("/fetch-jd", requireAuth, async (req: AuthRequest, res) => {
     const { url } = req.body as { url?: string };
-    if (!url || typeof url !== "string") {
-      res.status(400).json({ error: "url required" });
+    if (!url || typeof url !== "string" || url.length > 2048) {
+      res.status(400).json({ error: "url required (max 2048 chars)" });
+      return;
+    }
+    if (!/^https?:\/\//i.test(url)) {
+      res.status(400).json({ error: "url must start with http:// or https://" });
       return;
     }
     try {

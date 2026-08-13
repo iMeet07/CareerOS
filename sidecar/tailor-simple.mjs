@@ -23,6 +23,7 @@ dotenv.config({ path: path.join(ROOT, ".env") });
 
 const PORT = 8787;
 const TAILOR_TOKEN = process.env.TAILOR_TOKEN?.trim() || "";
+if (!TAILOR_TOKEN) log("WARNING: TAILOR_TOKEN is not set — sidecar is open to any local caller");
 const DEFAULT_MODEL = process.env.OLLAMA_MODEL ?? "gemma3:12b";
 const OLLAMA_HOST = process.env.OLLAMA_HOST || "127.0.0.1";
 const OLLAMA_PORT = 11434;
@@ -332,7 +333,7 @@ function runBridge(dir, company, role, onLog, baseResumePath = null) {
       try {
         resolve(JSON.parse(stdout.trim()));
       } catch {
-        onLog?.("error", `resume_bridge.py output not JSON: ${stdout.slice(0, 200)}`);
+        onLog?.("error", `resume_bridge.py output not JSON: ${stdout.slice(0, 500)}${stderr ? ` | stderr: ${stderr.slice(0, 200)}` : ""}`);
         resolve(null);
       }
     });
@@ -471,7 +472,30 @@ async function tailorOne(job, resumeText, model, seq, dateDir, ctx) {
     let bridge = await runBridge(dir, company, role, onLog);
     const firstBridge = bridge; // preserve role_type + template from round 1
 
-    if (bridge?.ok) {
+    if (bridge === null) {
+      // bridge timed out or crashed (runBridge resolved null)
+      onLog?.("error", "resume_bridge.py timed out or crashed — check pdflatex is installed and RESUME_ENGINE_PATH is correct");
+      result.pdf = false;
+      result.pdfPath = "";
+      result.status = "bridge-timeout";
+      result.error = "Resume assembly timed out after 3 minutes — pdflatex may be missing or RESUME_ENGINE_PATH is wrong";
+      sendPhase("done", result);
+      return result;
+    }
+
+    if (!bridge.ok) {
+      // Python ran but returned an error (import failure, missing template, etc.)
+      const bridgeErr = bridge.error || "resume_bridge.py returned ok=false";
+      onLog?.("error", `Bridge error: ${bridgeErr}`);
+      result.pdf = false;
+      result.pdfPath = "";
+      result.status = "bridge-error";
+      result.error = bridgeErr;
+      sendPhase("done", result);
+      return result;
+    }
+
+    if (bridge.ok) {
       onLog?.("result", `Round 1 · ATS ${bridge.ats_score}%${bridge.ats_score >= ATS_TARGET ? " ✓ target reached" : ` · ${bridge.keywords_missing?.length ?? 0} gaps remain`}`);
 
       // Refinement loop — Ollama sees full JD + current resume + missing keywords each round
@@ -543,15 +567,10 @@ async function tailorOne(job, resumeText, model, seq, dateDir, ctx) {
       } else {
         result.pdf     = false;
         result.pdfPath = bridge.resume_md || "";
-        onLog?.("warn", `PDF failed — resume.md saved · ${bridge.pdf_error || "unknown error"}`);
+        const pdfErr = bridge.pdf_error || bridge.error || "unknown error";
+        onLog?.("warn", `PDF failed — resume.md saved · ${pdfErr}`);
       }
-    } else {
-      result.pdf     = false;
-      result.pdfPath = "";
-      onLog?.("warn", "Bridge did not run — check RESUME_ENGINE_PATH in .env. Falling back to ATS report only.");
-    }
-
-    onLog?.("result", `✓ Complete · ATS ${ai.ats_before}→${ai.ats_after} (internal: ${bridge?.ats_score ?? "?"}%) · ${dir}`);
+    onLog?.("result", `✓ Complete · ATS ${ai.ats_before}→${ai.ats_after} (internal: ${bridge.ats_score ?? "?"}%) · ${dir}`);
   } catch (e) {
     result.status = "ai-failed";
     result.error = String(e.message || e);
@@ -664,9 +683,13 @@ const server = http.createServer(async (req, res) => {
             let explain = null;
             try { explain = JSON.parse(fs.readFileSync(path.join(dir, "optimizer.json"), "utf8")); } catch { /* ok */ }
             const ats = readAtsFromDir(dir);
-            const pdfName = YOUR_NAME ? `${YOUR_NAME}.pdf` : "resume.pdf";
-            const pdfPath = path.join(dir, pdfName);
-            const hasPdf = fs.existsSync(pdfPath);
+            // Scan for any PDF — bridge names it ${YOUR_NAME}_{company}_{role}.pdf
+            let pdfPath = null;
+            try {
+              const pdfs = fs.readdirSync(dir).filter(f => f.endsWith(".pdf"));
+              if (pdfs.length > 0) pdfPath = path.join(dir, pdfs[0]);
+            } catch { /* dir missing or unreadable */ }
+            const hasPdf = pdfPath !== null;
             out.push({
               folder, dateDir: dd, dir,
               pdfPath: hasPdf ? pdfPath : null,

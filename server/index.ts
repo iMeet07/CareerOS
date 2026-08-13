@@ -10,6 +10,7 @@ import { authRouter } from "./routes/auth.js";
 import { emailfinderRouter } from "./routes/emailfinder.js";
 import { prefsRouter } from "./routes/prefs.js";
 import { trackerRouter } from "./routes/tracker.js";
+import { cartRouter } from "./routes/cart.js";
 
 const PORT = parseInt(process.env.SERVER_PORT ?? "3001");
 
@@ -30,6 +31,7 @@ async function main() {
   app.use("/api/emailfinder", emailfinderRouter());
   app.use("/api/prefs", prefsRouter(db));
   app.use("/api/tracker", trackerRouter());
+  app.use("/api/cart", cartRouter());
 
   // Pipeline refresh stub — the scraper runs as a separate process/service.
   // Returns a clear message so the Dashboard button shows an actionable error
