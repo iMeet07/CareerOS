@@ -6,6 +6,9 @@ import react from "@vitejs/plugin-react";
 const API_TARGET = process.env.VITE_API_TARGET || "http://localhost:3001";
 
 export default defineConfig({
+  // Set root to this config file's directory so Vite finds app/index.html
+  // when the npm script runs from the repo root (vite --config app/vite.config.ts).
+  root: import.meta.dirname,
   plugins: [react()],
   server: {
     proxy: {
