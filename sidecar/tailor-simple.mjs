@@ -570,6 +570,7 @@ async function tailorOne(job, resumeText, model, seq, dateDir, ctx) {
         const pdfErr = bridge.pdf_error || bridge.error || "unknown error";
         onLog?.("warn", `PDF failed — resume.md saved · ${pdfErr}`);
       }
+    } // end if (bridge.ok)
     onLog?.("result", `✓ Complete · ATS ${ai.ats_before}→${ai.ats_after} (internal: ${bridge.ats_score ?? "?"}%) · ${dir}`);
   } catch (e) {
     result.status = "ai-failed";
