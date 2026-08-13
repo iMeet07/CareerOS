@@ -49,6 +49,11 @@ export class MongoAdapter implements DbAdapter {
     await JobModel.findOneAndUpdate({ id: job.id }, job, { upsert: true });
   }
 
+  async getJobIds(): Promise<string[]> {
+    const jobs = await JobModel.find({}, { id: 1, _id: 0 }).lean();
+    return jobs.map((j: any) => j.id);
+  }
+
   async updateJobStatus(id: string, status: string): Promise<void> {
     await JobModel.updateOne({ id }, { status });
   }

@@ -10,7 +10,8 @@ export function templatesRouter(db: DbAdapter) {
     try {
       const templates = await db.getTemplates(req.userEmail!);
       res.json({ templates });
-    } catch {
+    } catch (e) {
+      console.error("[templates] GET /:", e);
       res.status(500).json({ error: "Failed to fetch templates" });
     }
   });
@@ -20,7 +21,8 @@ export function templatesRouter(db: DbAdapter) {
       const template = { id: randomUUID(), user_email: req.userEmail!, created_at: new Date().toISOString(), ...req.body };
       await db.upsertTemplate(template);
       res.json({ template });
-    } catch {
+    } catch (e) {
+      console.error("[templates] POST /:", e);
       res.status(500).json({ error: "Failed to save template" });
     }
   });
@@ -29,7 +31,8 @@ export function templatesRouter(db: DbAdapter) {
     try {
       await db.deleteTemplate(req.params.id, req.userEmail!);
       res.json({ ok: true });
-    } catch {
+    } catch (e) {
+      console.error("[templates] DELETE /:id:", e);
       res.status(500).json({ error: "Failed to delete template" });
     }
   });

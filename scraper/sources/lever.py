@@ -4,7 +4,7 @@ Lever job scraper — uses their public postings API, no auth required.
 import httpx
 import hashlib
 from datetime import datetime
-from typing import Iterator
+from typing import AsyncIterator
 from ..models import Job
 
 DEFAULT_COMPANIES = [
@@ -21,7 +21,7 @@ def _score(posting: dict, keywords: list[str]) -> float:
     hits = sum(1 for kw in keywords if kw.lower() in text)
     return round(min(hits / max(len(keywords), 1), 1.0) * 10, 2)
 
-async def scrape(companies: list[str] | None = None, keywords: list[str] = []) -> Iterator[Job]:
+async def scrape(companies: list[str] | None = None, keywords: list[str] = []) -> AsyncIterator[Job]:
     companies = companies or DEFAULT_COMPANIES
     async with httpx.AsyncClient(timeout=15) as client:
         for company in companies:
@@ -43,7 +43,7 @@ async def scrape(companies: list[str] | None = None, keywords: list[str] = []) -
                         description=posting.get("descriptionPlain", "")[:2000],
                         posted_at=datetime.utcfromtimestamp(posting["createdAt"] / 1000).isoformat() if posting.get("createdAt") else None,
                         scraped_at=datetime.utcnow().isoformat(),
-                        tags=[cats.get("team", ""), cats.get("commitment", "")],
+                        tags=[t for t in [cats.get("team", ""), cats.get("commitment", "")] if t],
                     )
             except Exception as e:
                 print(f"[lever] {company}: {e}")

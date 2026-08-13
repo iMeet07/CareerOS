@@ -5,7 +5,7 @@ Greenhouse embeds are used by thousands of companies (Airbnb, Figma, etc.)
 import httpx
 import hashlib
 from datetime import datetime
-from typing import Iterator
+from typing import AsyncIterator
 from ..models import Job
 
 # A curated list of companies on Greenhouse. Users can extend this in config.
@@ -18,12 +18,15 @@ DEFAULT_BOARDS = [
 def _job_id(board: str, gh_id: int) -> str:
     return hashlib.md5(f"greenhouse:{board}:{gh_id}".encode()).hexdigest()[:16]
 
+def _dept_names(departments: list) -> str:
+    return " ".join(d["name"] if isinstance(d, dict) else d for d in departments)
+
 def _score(job: dict, keywords: list[str]) -> float:
-    text = f"{job.get('title','')} {' '.join(job.get('departments', []))} {job.get('location', {}).get('name','')}".lower()
+    text = f"{job.get('title','')} {_dept_names(job.get('departments', []))} {job.get('location', {}).get('name','')}".lower()
     hits = sum(1 for kw in keywords if kw.lower() in text)
     return round(min(hits / max(len(keywords), 1), 1.0) * 10, 2)
 
-async def scrape(boards: list[str] | None = None, keywords: list[str] = []) -> Iterator[Job]:
+async def scrape(boards: list[str] | None = None, keywords: list[str] = []) -> AsyncIterator[Job]:
     boards = boards or DEFAULT_BOARDS
     async with httpx.AsyncClient(timeout=15) as client:
         for board in boards:

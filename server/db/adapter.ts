@@ -3,6 +3,7 @@ import type { Job, Contact, Template, User } from "../types.js";
 export interface DbAdapter {
   // Jobs
   getJobs(filters?: { status?: string; limit?: number }): Promise<Job[]>;
+  getJobIds(): Promise<string[]>;
   upsertJob(job: Job): Promise<void>;
   updateJobStatus(id: string, status: string): Promise<void>;
 

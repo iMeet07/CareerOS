@@ -42,6 +42,11 @@ export class PostgresAdapter implements DbAdapter {
         job.description, job.salary, job.remote, job.posted_at, job.scraped_at, JSON.stringify(job.tags ?? [])]);
   }
 
+  async getJobIds(): Promise<string[]> {
+    const res = await this.query("SELECT id FROM jobs");
+    return res.rows.map((r: any) => r.id);
+  }
+
   async updateJobStatus(id: string, status: string): Promise<void> {
     await this.query("UPDATE jobs SET status=$1 WHERE id=$2", [status, id]);
   }

@@ -30,7 +30,8 @@ export function emailfinderRouter() {
       const result = await findEmail(firstName, lastName, d);
       if (!result) { res.json({ found: false }); return; }
       res.json({ found: true, ...result });
-    } catch {
+    } catch (e) {
+      console.error("[emailfinder] POST /:", e);
       res.status(500).json({ error: "Email finder failed" });
     }
   });
@@ -46,7 +47,8 @@ export function emailfinderRouter() {
         })
       );
       res.json({ results });
-    } catch {
+    } catch (e) {
+      console.error("[emailfinder] POST /bulk:", e);
       res.status(500).json({ error: "Bulk email finder failed" });
     }
   });

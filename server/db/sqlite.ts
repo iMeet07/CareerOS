@@ -44,11 +44,16 @@ export class SqliteAdapter implements DbAdapter {
   }
 
   async upsertJob(job: Job): Promise<void> {
+    // Provide null defaults before spread so better-sqlite3 never sees missing named params
     this.db.prepare(`
       INSERT INTO jobs (id,title,company,location,url,source,score,status,description,salary,remote,posted_at,scraped_at,tags)
       VALUES (@id,@title,@company,@location,@url,@source,@score,@status,@description,@salary,@remote,@posted_at,@scraped_at,@tags)
       ON CONFLICT(id) DO UPDATE SET score=excluded.score, status=excluded.status, scraped_at=excluded.scraped_at
-    `).run({ ...job, tags: JSON.stringify(job.tags ?? []), remote: job.remote ? 1 : 0 });
+    `).run({ description: null, salary: null, posted_at: null, ...job, tags: JSON.stringify(job.tags ?? []), remote: job.remote ? 1 : 0 });
+  }
+
+  async getJobIds(): Promise<string[]> {
+    return this.db.prepare("SELECT id FROM jobs").all().map((r: any) => r.id);
   }
 
   async updateJobStatus(id: string, status: string): Promise<void> {
@@ -64,7 +69,7 @@ export class SqliteAdapter implements DbAdapter {
       INSERT INTO contacts (id,user_email,name,company,email,title,confidence,created_at)
       VALUES (@id,@user_email,@name,@company,@email,@title,@confidence,@created_at)
       ON CONFLICT(id) DO UPDATE SET name=excluded.name, email=excluded.email
-    `).run(contact);
+    `).run({ company: null, title: null, confidence: null, ...contact });
   }
 
   async deleteContact(id: string, userEmail: string): Promise<void> {

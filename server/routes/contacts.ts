@@ -10,7 +10,8 @@ export function contactsRouter(db: DbAdapter) {
     try {
       const contacts = await db.getContacts(req.userEmail!);
       res.json({ contacts });
-    } catch {
+    } catch (e) {
+      console.error("[contacts] GET /:", e);
       res.status(500).json({ error: "Failed to fetch contacts" });
     }
   });
@@ -20,7 +21,8 @@ export function contactsRouter(db: DbAdapter) {
       const contact = { id: randomUUID(), user_email: req.userEmail!, created_at: new Date().toISOString(), ...req.body };
       await db.upsertContact(contact);
       res.json({ contact });
-    } catch {
+    } catch (e) {
+      console.error("[contacts] POST /:", e);
       res.status(500).json({ error: "Failed to save contact" });
     }
   });
@@ -29,7 +31,8 @@ export function contactsRouter(db: DbAdapter) {
     try {
       await db.deleteContact(req.params.id, req.userEmail!);
       res.json({ ok: true });
-    } catch {
+    } catch (e) {
+      console.error("[contacts] DELETE /:id:", e);
       res.status(500).json({ error: "Failed to delete contact" });
     }
   });
