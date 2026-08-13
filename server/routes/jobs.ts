@@ -78,18 +78,20 @@ function jobUrlBucket(url: string): string {
 }
 
 function htmlToText(html: string): string {
-  return html
+  // Decode entity-encoded HTML first so that &lt;div&gt; → <div> before tag stripping.
+  // Greenhouse stores descriptions as HTML entity strings; Lever stores plain text.
+  let s = html
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  return s
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
     .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/?(p|div|li|h[1-6])[^>]*>/gi, "\n")
+    .replace(/<\/?(p|div|li|ul|ol|h[1-6])[^>]*>/gi, "\n")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
+    .replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"').replace(/&#39;/gi, "'")
     .replace(/&[a-z#0-9]+;/gi, " ")
     .replace(/[ \t]+/g, " ")
     .replace(/\n[ \t]+/g, "\n")
@@ -240,7 +242,7 @@ export function jobsRouter(db: DbAdapter) {
       for (const job of allJobs) {
         if (!job.url || !job.description) continue;
         if (jobUrlBucket(job.url) === bucket) {
-          result[job.url] = job.description;
+          result[job.url] = htmlToText(job.description);
         }
       }
       res.json(result);
