@@ -66,6 +66,18 @@ export default function ManualTailor() {
     setSessions(loadedSessions);
     setActiveSessionId(loadedSessions[0]?.id ?? null);
     setHydrated(true);
+
+    // Pre-fill from job card "Tailor →" click — reads then immediately clears
+    const raw = localStorage.getItem("careeros_tailor_prefill");
+    if (raw) {
+      try {
+        const p = JSON.parse(raw) as { jd?: string; company?: string; title?: string };
+        localStorage.removeItem("careeros_tailor_prefill");
+        if (p.jd) setDescription(p.jd);
+        if (p.company) setCompanyOverride(p.company);
+        if (p.title) setTitleOverride(p.title);
+      } catch { /* ignore malformed prefill */ }
+    }
   }, [authLoading, uid]);
 
   const tailorStatus = useTailorStatus();

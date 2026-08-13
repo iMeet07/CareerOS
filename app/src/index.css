@@ -3857,6 +3857,20 @@ header {
   font-family: "Work Sans", "Inter", sans-serif;
 }
 .apply-btn:hover { filter: brightness(1.1); text-decoration: none; color: var(--primary-foreground); }
+.tailor-btn {
+  padding: 4px 10px; border-radius: var(--radius-sm);
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-2); font-size: 11px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+  font-family: "Work Sans", "Inter", sans-serif;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.tailor-btn:hover:not(:disabled) {
+  background: rgba(123, 185, 255, 0.12);
+  border-color: rgba(123, 185, 255, 0.45);
+  color: #a8d4ff;
+}
+.tailor-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .apply-btn.applied {
   background: linear-gradient(135deg, var(--bean-moss), var(--bean-dark));
   box-shadow: 0 0 12px color-mix(in oklch, var(--blue) 32%, transparent);

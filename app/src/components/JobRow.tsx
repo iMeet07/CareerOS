@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Job } from "../types";
 import type { ApplyMetadata, ApplyRecord } from "../hooks/useApplyTracker";
 import { isTop500 } from "../data/top500";
+import { jobDescriptionBucket } from "../utils/jobDescriptionBuckets";
 
 function extractJobId(url: string | null | undefined): string {
   if (!url) return "";
@@ -96,7 +98,49 @@ interface Props {
 }
 
 export default function JobRow({ job, index, applyRecord, onAddToTracker, onExcludeCompany }: Props) {
+  const navigate = useNavigate();
   const [msgCopied, setMsgCopied] = useState(false);
+  const [tailorFetching, setTailorFetching] = useState(false);
+
+  const handleTailor = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!job.job_url || tailorFetching) return;
+    setTailorFetching(true);
+    let jd = "";
+    try {
+      // 1. Try DB bucket first (fast)
+      const bucket = jobDescriptionBucket(job.job_url);
+      const br = await fetch(`/api/jobs/description-bucket?bucket=${bucket}&t=${Date.now()}`, {
+        credentials: "include", cache: "no-store",
+      });
+      if (br.ok) {
+        const data = await br.json() as Record<string, string>;
+        if (typeof data[job.job_url] === "string") jd = data[job.job_url];
+      }
+      // 2. Fall back to URL fetch (Workday CXS API or plain HTTP)
+      if (jd.length < 200) {
+        const fr = await fetch("/api/jobs/fetch-jd", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          signal: AbortSignal.timeout(15_000),
+          body: JSON.stringify({ url: job.job_url }),
+        });
+        if (fr.ok) {
+          const data = await fr.json() as { description?: string };
+          if (typeof data.description === "string") jd = data.description;
+        }
+      }
+    } catch { /* ignore — navigate with whatever we have */ }
+
+    localStorage.setItem("careeros_tailor_prefill", JSON.stringify({
+      jd,
+      company: job.company || "",
+      title: job.title || "",
+      url: job.job_url,
+    }));
+    navigate("/manual-tailor");
+  };
 
   function handleMessageClick(e: React.MouseEvent) {
     e.preventDefault();
@@ -187,6 +231,16 @@ export default function JobRow({ job, index, applyRecord, onAddToTracker, onExcl
         <button className="message-btn" onClick={handleMessageClick}>
           {msgCopied ? "Copied!" : "Msg"}
         </button>
+        {job.job_url && (
+          <button
+            className="tailor-btn"
+            title="Fetch JD and open Tailor Lab to review before generating"
+            disabled={tailorFetching}
+            onClick={(e) => { void handleTailor(e); }}
+          >
+            {tailorFetching ? "…" : "Tailor →"}
+          </button>
+        )}
         {job.job_url ? (
           <a
             className={`apply-btn${isApplied ? " applied" : ""}`}
