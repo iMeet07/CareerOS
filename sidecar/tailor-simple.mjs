@@ -10,8 +10,9 @@
  */
 import http from "node:http";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import { loadBullets, loadSafeClaims, loadBankNumbers, bankToPrompt } from "./tailor-bank.mjs";
@@ -212,6 +213,58 @@ async function callOllama(model, jd, context, onLog) {
   throw new Error(`Model output truncated even at ${budgets.at(-1)} tokens — JD may be too long`);
 }
 
+// ─── Resume Engine Machine bridge ────────────────────────────────────────────
+const BRIDGE_PY = path.join(SCRIPT_DIR, "resume_bridge.py");
+const REM_PATH  = process.env.RESUME_ENGINE_PATH || path.join(os.homedir(), "Resume Engine Machine");
+
+function runBridge(dir, company, role, onLog) {
+  return new Promise((resolve) => {
+    const env = { ...process.env, RESUME_ENGINE_PATH: REM_PATH };
+    const proc = spawn("python3", [
+      BRIDGE_PY,
+      "--jd",        path.join(dir, "jd.txt"),
+      "--optimizer", path.join(dir, "optimizer.json"),
+      "--outdir",    dir,
+      "--company",   company,
+      "--role",      role,
+    ], { env });
+
+    let stdout = "";
+    let stderr = "";
+    proc.stdout.on("data", d => (stdout += d));
+    proc.stderr.on("data", d => (stderr += d));
+
+    const timer = setTimeout(() => {
+      proc.kill();
+      onLog?.("error", "resume_bridge.py timed out after 3 minutes");
+      resolve(null);
+    }, 180_000);
+
+    proc.on("close", (code) => {
+      clearTimeout(timer);
+      // surface bridge warnings (skip pdflatex noise)
+      for (const line of stderr.split("\n").filter(l => l.trim() && !l.includes("LaTeX")).slice(0, 4))
+        onLog?.("warn", `bridge: ${line.trim()}`);
+      if (code !== 0) {
+        onLog?.("error", `resume_bridge.py exited ${code}`);
+        return resolve(null);
+      }
+      try {
+        resolve(JSON.parse(stdout.trim()));
+      } catch {
+        onLog?.("error", `resume_bridge.py output not JSON: ${stdout.slice(0, 200)}`);
+        resolve(null);
+      }
+    });
+
+    proc.on("error", err => {
+      clearTimeout(timer);
+      onLog?.("error", `resume_bridge.py spawn error: ${err.message}`);
+      resolve(null);
+    });
+  });
+}
+
 // ─── Per-job tailor ───────────────────────────────────────────────────────────
 async function tailorOne(job, resumeText, model, seq, dateDir, ctx) {
   const { sendPhase, log: onLog } = ctx;
@@ -299,8 +352,6 @@ async function tailorOne(job, resumeText, model, seq, dateDir, ctx) {
 
     sendPhase("assembling");
     result.ats = `${ai.ats_before}→${ai.ats_after}`;
-    result.pdf = false;
-    result.pdfPath = "";
     result.explain = {
       ats_before: ai.ats_before,
       ats_after: ai.ats_after,
@@ -310,8 +361,36 @@ async function tailorOne(job, resumeText, model, seq, dateDir, ctx) {
       bullet_rewrites: ai.bullet_rewrites,
     };
 
-    onLog?.("result", `✓ Complete · ATS ${result.ats} · ${dir}`);
-    onLog?.("think", "Note: PDF generation requires tectonic + LaTeX template. ATS report saved as ats_report.txt.");
+    // Phase 2: assemble tailored resume + generate PDF via Resume Engine Machine
+    onLog?.("step", "Phase 2/2 · Assemble — select template → apply rewrites → inject keywords → PDF");
+    const bridge = await runBridge(dir, company, role, onLog);
+
+    if (bridge?.ok) {
+      onLog?.("result", `Role type: ${bridge.role_type} → template: ${bridge.template}`);
+      onLog?.("result", `Rewrites applied: ${bridge.rewrites_applied} · Keywords injected: ${bridge.keywords_injected}`);
+      onLog?.("result", `ATS score (internal scorer): ${bridge.ats_score}%`);
+      result.explain.ats_internal  = bridge.ats_score;
+      result.explain.role_type     = bridge.role_type;
+      result.explain.template      = bridge.template;
+      result.explain.keywords_missing = bridge.keywords_missing;
+
+      if (bridge.pdf_ok) {
+        result.pdf     = true;
+        result.pdfPath = bridge.pdf_path;
+        result.ats     = `${ai.ats_before}→${ai.ats_after} (internal: ${bridge.ats_score}%)`;
+        onLog?.("result", `✓ PDF ready · ${bridge.pdf_pages}p · ${bridge.pdf_path}`);
+      } else {
+        result.pdf     = false;
+        result.pdfPath = bridge.resume_md || "";
+        onLog?.("warn", `PDF failed — resume.md saved · ${bridge.pdf_error || "unknown error"}`);
+      }
+    } else {
+      result.pdf     = false;
+      result.pdfPath = "";
+      onLog?.("warn", "Bridge did not run — check RESUME_ENGINE_PATH in .env. Falling back to ATS report only.");
+    }
+
+    onLog?.("result", `✓ Complete · ATS ${ai.ats_before}→${ai.ats_after} · ${dir}`);
   } catch (e) {
     result.status = "ai-failed";
     result.error = String(e.message || e);
