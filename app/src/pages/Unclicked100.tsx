@@ -148,7 +148,7 @@ export default function Unclicked100() {
 
       <footer>
         <div className="wrapper">
-          Atriveo Job Pipeline &nbsp;·&nbsp; Weekly · Score ≥ 100 · Not yet applied
+          CareerOS Job Pipeline &nbsp;·&nbsp; Weekly · Score ≥ 100 · Not yet applied
         </div>
       </footer>
     </div>

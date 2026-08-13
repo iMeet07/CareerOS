@@ -6,7 +6,7 @@ import { jobDismissKey } from "../utils/jobCopy";
 import { mergeStreamIntoTailorRecord, reconcileTailorRecordsWithQueue } from "../utils/tailorSync";
 import { estDateKey, useEstDayKey, estHourKey } from "../utils/estDate";
 
-const KEY = (uid: string) => `atriveo_tailor_status_v1_${uid}`;
+const KEY = (uid: string) => `careeros_tailor_status_v1_${uid}`;
 
 function load(uid: string): Record<string, TailorRecord> {
   try {

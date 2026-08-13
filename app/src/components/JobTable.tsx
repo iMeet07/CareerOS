@@ -573,7 +573,7 @@ function JobTableRow({
               <button
                 type="button"
                 className="job-table-board-apply"
-                title="Retry sending to Atriveo tracker"
+                title="Retry sending to CareerOS tracker"
                 onClick={(e) => {
                   e.stopPropagation();
                   onAddToTracker(job.job_url, title, co, { location: job.location || null });

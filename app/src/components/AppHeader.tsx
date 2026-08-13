@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import AtriveoLogo from "./AtriveoLogo";
+import CareerOSLogo from "./CareerOSLogo";
 
 const TOOLS_LINKS = [
   { href: "/optimizer", label: "Legacy Optimizer", note: "Gemma rewrites — not AC compiler" },
@@ -61,9 +61,9 @@ export default function AppHeader({ hideLogo: _hideLogo = false }: { hideLogo?: 
     <header className={toolsOpen ? "header--tools-open" : undefined}>
       <div className="header-inner">
         {/* Brand mark */}
-        <a href="/" className="logo" aria-label="Atriveo home">
+        <a href="/" className="logo" aria-label="CareerOS home">
           <div className="logo-icon">
-            <AtriveoLogo size={18} fill="var(--primary-foreground)" />
+            <CareerOSLogo size={18} fill="var(--primary-foreground)" />
           </div>
           <span className="logo-status-dot" />
         </a>

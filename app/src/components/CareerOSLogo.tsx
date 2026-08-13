@@ -1,9 +1,9 @@
 /**
- * Official Atriveo brand mark — the "Directional Apex": a serif capital A
- * whose crossbar is a compass needle. Sourced from the Atriveo Brand Foundation.
+ * Official CareerOS brand mark — the "Directional Apex": a serif capital A
+ * whose crossbar is a compass needle. Sourced from the CareerOS Brand Foundation.
  * Single solid form, holds shape down to 16px.
  */
-export default function AtriveoLogo({
+export default function CareerOSLogo({
   size = 28,
   fill = "currentColor",
   className,
@@ -19,7 +19,7 @@ export default function AtriveoLogo({
       viewBox="0 0 100 100"
       fill="none"
       role="img"
-      aria-label="Atriveo"
+      aria-label="CareerOS"
       className={className}
     >
       {/* Apex — serif A silhouette */}

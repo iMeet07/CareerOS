@@ -1,0 +1,50 @@
+{
+  "profile": {
+    "name": "Meet Brahmbhatt",
+
+    "keywords": [
+      "machine learning", "ml engineer", "ai engineer", "nlp engineer",
+      "data scientist", "applied scientist", "research scientist",
+      "data engineer", "analytics engineer", "software engineer",
+      "backend engineer", "forward deployed engineer", "mlops",
+      "python", "pytorch", "tensorflow", "langchain", "langgraph",
+      "llm", "large language model", "rag", "transformer", "deep learning",
+      "pyspark", "kafka", "airflow", "scikit-learn", "huggingface",
+      "vector search", "embeddings", "generative ai", "multimodal"
+    ],
+
+    "linkedin_queries": [
+      "machine learning engineer new grad 2026",
+      "ai engineer entry level",
+      "data scientist new grad",
+      "nlp engineer entry level",
+      "data engineer new grad 2026",
+      "software engineer ml ai",
+      "applied scientist new grad",
+      "research scientist entry level ml"
+    ],
+
+    "location": "New York, NY",
+    "preferred_locations": ["New York", "Remote", "Stony Brook"],
+    "remote_preferred": true,
+
+    "excluded_companies": [],
+
+    "greenhouse_boards": [
+      "anthropic", "databricks", "stripe", "vercel",
+      "figma", "airbnb", "twilio", "mongodb", "elastic",
+      "lyft", "pinterest", "dropbox", "coinbase", "robinhood",
+      "carta", "lattice", "airtable", "asana", "amplitude",
+      "mixpanel", "braze", "klaviyo", "duolingo", "roblox",
+      "instacart", "sofi", "celonis", "axon",
+      "doordashusa", "cloudflare", "brex", "point72",
+      "scaleai", "discord", "flatironhealth",
+      "verkada", "samsara", "oscar", "pagerduty", "modernhealth"
+    ],
+
+    "lever_companies": [
+      "spotify",
+      "palantir"
+    ]
+  }
+}

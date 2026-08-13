@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# Atriveo — Linux systemd service + timer installer
+# CareerOS — Linux systemd service + timer installer
 # Installs:
-#   atriveo-scraper.service / .timer   — hourly scraper
-#   atriveo-feed-sync.service / .timer — hourly feed push
-#   atriveo-tailor.service             — resume sidecar (keeps alive)
+#   careeros-scraper.service / .timer   — hourly scraper
+#   careeros-feed-sync.service / .timer — hourly feed push
+#   careeros-tailor.service             — resume sidecar (keeps alive)
 #
 # Usage: bash scripts/install-systemd.sh
 #        npm run pipeline:install:linux
@@ -24,7 +24,7 @@ PYTHON="${ROOT}/scraper/.venv/bin/python"
 [ ! -f "$PYTHON" ] && PYTHON="$(command -v python3)"
 NODE="$(command -v node)"
 
-echo -e "\n${BOLD}Installing Atriveo systemd services…${RESET}\n"
+echo -e "\n${BOLD}Installing CareerOS systemd services…${RESET}\n"
 
 # ── Helper ────────────────────────────────────────────────────────────────────
 install_unit() {
@@ -39,8 +39,8 @@ enable_timer() {
 }
 
 # ── 1. Scraper ────────────────────────────────────────────────────────────────
-install_unit "atriveo-scraper.service" "[Unit]
-Description=Atriveo job scraper
+install_unit "careeros-scraper.service" "[Unit]
+Description=CareerOS job scraper
 After=network-online.target
 
 [Service]
@@ -53,11 +53,11 @@ Environment=CONFIG_PATH=${ROOT}/config.json
 Environment=LINKEDIN_ENABLED=${LINKEDIN_ENABLED:-false}
 Environment=LINKEDIN_EMAIL=${LINKEDIN_EMAIL:-}
 Environment=LINKEDIN_PASSWORD=${LINKEDIN_PASSWORD:-}
-StandardOutput=append:/tmp/atriveo_scraper.log
-StandardError=append:/tmp/atriveo_scraper.log"
+StandardOutput=append:/tmp/careeros_scraper.log
+StandardError=append:/tmp/careeros_scraper.log"
 
-install_unit "atriveo-scraper.timer" "[Unit]
-Description=Run Atriveo scraper hourly
+install_unit "careeros-scraper.timer" "[Unit]
+Description=Run CareerOS scraper hourly
 
 [Timer]
 OnCalendar=*:00:00
@@ -67,8 +67,8 @@ Persistent=true
 WantedBy=timers.target"
 
 # ── 2. Feed sync ──────────────────────────────────────────────────────────────
-install_unit "atriveo-feed-sync.service" "[Unit]
-Description=Atriveo feed sync
+install_unit "careeros-feed-sync.service" "[Unit]
+Description=CareerOS feed sync
 After=network-online.target
 
 [Service]
@@ -78,11 +78,11 @@ ExecStart=${NODE} ${ROOT}/scripts/sync-feed.mjs
 Environment=SERVER_URL=${SERVER_URL:-http://localhost:3001}
 Environment=CF_ACCOUNT_ID=${CF_ACCOUNT_ID:-}
 Environment=CF_API_TOKEN=${CF_API_TOKEN:-}
-StandardOutput=append:/tmp/atriveo_feed_sync.log
-StandardError=append:/tmp/atriveo_feed_sync.log"
+StandardOutput=append:/tmp/careeros_feed_sync.log
+StandardError=append:/tmp/careeros_feed_sync.log"
 
-install_unit "atriveo-feed-sync.timer" "[Unit]
-Description=Run Atriveo feed sync hourly at :20
+install_unit "careeros-feed-sync.timer" "[Unit]
+Description=Run CareerOS feed sync hourly at :20
 
 [Timer]
 OnCalendar=*:20:00
@@ -92,8 +92,8 @@ Persistent=true
 WantedBy=timers.target"
 
 # ── 3. Tailor sidecar ─────────────────────────────────────────────────────────
-install_unit "atriveo-tailor.service" "[Unit]
-Description=Atriveo resume tailor sidecar
+install_unit "careeros-tailor.service" "[Unit]
+Description=CareerOS resume tailor sidecar
 After=network.target
 
 [Service]
@@ -108,8 +108,8 @@ Environment=RESUME_ENGINE_PATH=${RESUME_ENGINE_PATH:-${ROOT}/resume-engine}
 Environment=TAILOR_OUT_ROOT=${TAILOR_OUT_ROOT:-${ROOT}/output/tailored-resumes}
 Environment=OLLAMA_MODEL=${OLLAMA_MODEL:-gemma3:12b}
 Environment=OLLAMA_HOST=${OLLAMA_HOST:-127.0.0.1}
-StandardOutput=append:/tmp/atriveo_tailor.log
-StandardError=append:/tmp/atriveo_tailor.log
+StandardOutput=append:/tmp/careeros_tailor.log
+StandardError=append:/tmp/careeros_tailor.log
 
 [Install]
 WantedBy=default.target"
@@ -117,17 +117,17 @@ WantedBy=default.target"
 # ── Enable everything ─────────────────────────────────────────────────────────
 systemctl --user daemon-reload
 
-enable_timer "atriveo-scraper.timer"
-enable_timer "atriveo-feed-sync.timer"
-systemctl --user enable --now atriveo-tailor.service 2>/dev/null && echo -e "${GREEN}✓${RESET} enabled atriveo-tailor.service" || echo -e "${RED}✗${RESET} failed to enable tailor"
+enable_timer "careeros-scraper.timer"
+enable_timer "careeros-feed-sync.timer"
+systemctl --user enable --now careeros-tailor.service 2>/dev/null && echo -e "${GREEN}✓${RESET} enabled careeros-tailor.service" || echo -e "${RED}✗${RESET} failed to enable tailor"
 
 # Enable linger so services survive logout
 loginctl enable-linger "$USER" 2>/dev/null && echo -e "${GREEN}✓${RESET} linger enabled (services survive logout)" || echo "⚠  Run: loginctl enable-linger $USER"
 
 echo -e "\n${BOLD}Services installed.${RESET}"
-echo -e "  Scraper:    hourly at :00  →  /tmp/atriveo_scraper.log"
-echo -e "  Feed sync:  hourly at :20  →  /tmp/atriveo_feed_sync.log"
-echo -e "  Tailor:     always-on      →  /tmp/atriveo_tailor.log"
+echo -e "  Scraper:    hourly at :00  →  /tmp/careeros_scraper.log"
+echo -e "  Feed sync:  hourly at :20  →  /tmp/careeros_feed_sync.log"
+echo -e "  Tailor:     always-on      →  /tmp/careeros_tailor.log"
 echo -e "\nCheck status:"
-echo -e "  systemctl --user status atriveo-tailor"
-echo -e "  systemctl --user list-timers | grep atriveo\n"
+echo -e "  systemctl --user status careeros-tailor"
+echo -e "  systemctl --user list-timers | grep careeros\n"

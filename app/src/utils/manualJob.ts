@@ -17,8 +17,8 @@ export interface ManualTailorSession {
   submittedAt: string;
 }
 
-const MANUAL_JOBS_KEY = (uid: string) => `atriveo_manual_jobs_v1_${uid}`;
-const SESSIONS_KEY = (uid: string) => `atriveo_manual_tailor_sessions_v1_${uid}`;
+const MANUAL_JOBS_KEY = (uid: string) => `careeros_manual_jobs_v1_${uid}`;
+const SESSIONS_KEY = (uid: string) => `careeros_manual_tailor_sessions_v1_${uid}`;
 
 export function createManualJob(input: ManualJobInput): Job {
   const description = input.description.trim();

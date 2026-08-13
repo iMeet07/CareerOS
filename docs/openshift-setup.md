@@ -1,6 +1,6 @@
 # OpenShift Setup Guide
 
-Deploy the full Atriveo stack to OpenShift (or any Kubernetes cluster) — no Cloudflare account needed. Everything self-hosted.
+Deploy the full CareerOS stack to OpenShift (or any Kubernetes cluster) — no Cloudflare account needed. Everything self-hosted.
 
 ## What you get
 
@@ -25,15 +25,15 @@ Deploy the full Atriveo stack to OpenShift (or any Kubernetes cluster) — no Cl
 
 ```bash
 # App image (frontend + API server)
-docker build -t ghcr.io/YOUR_GITHUB_USER/atriveo-jd-extractor:latest .
-docker push ghcr.io/YOUR_GITHUB_USER/atriveo-jd-extractor:latest
+docker build -t ghcr.io/YOUR_GITHUB_USER/careeros:latest .
+docker push ghcr.io/YOUR_GITHUB_USER/careeros:latest
 
 # Scraper image
-docker build -f deploy/Dockerfile.scraper -t ghcr.io/YOUR_GITHUB_USER/atriveo-jd-extractor-scraper:latest .
-docker push ghcr.io/YOUR_GITHUB_USER/atriveo-jd-extractor-scraper:latest
+docker build -f deploy/Dockerfile.scraper -t ghcr.io/YOUR_GITHUB_USER/careeros-scraper:latest .
+docker push ghcr.io/YOUR_GITHUB_USER/careeros-scraper:latest
 ```
 
-> If you push to GitHub, CI automatically builds and pushes both images on every commit to `main` — skip this step and use `ghcr.io/atishay-kasliwal/atriveo-jd-extractor:latest` directly.
+> If you push to GitHub, CI automatically builds and pushes both images on every commit to `main` — skip this step and use `ghcr.io/iMeet07/careeros:latest` directly.
 
 ---
 
@@ -52,7 +52,7 @@ stringData:
   JWT_SECRET: "your-random-32-char-secret"
   SCRAPER_TOKEN: "your-random-scraper-token"
   TAILOR_TOKEN: "your-random-tailor-token"
-  DATABASE_URL: "postgres://atriveo:YOUR_PG_PASSWORD@postgres:5432/atriveo"
+  DATABASE_URL: "postgres://careeros:YOUR_PG_PASSWORD@postgres:5432/careeros"
   POSTGRES_PASSWORD: "YOUR_PG_PASSWORD"
 ```
 
@@ -93,7 +93,7 @@ bash deploy/openshift/deploy.sh
 ```
 
 The script:
-1. Creates the `atriveo` namespace
+1. Creates the `careeros` namespace
 2. Applies ConfigMap + Secrets
 3. Loads the DB migration SQL
 4. Deploys Postgres, Ollama, App, and the scraper CronJob
@@ -103,13 +103,13 @@ The script:
 ## Step 6 — Watch the rollout
 
 ```bash
-oc get pods -n atriveo -w
+oc get pods -n careeros -w
 ```
 
 Once all pods are `Running`:
 
 ```bash
-oc get route atriveo-app -n atriveo
+oc get route careeros-app -n careeros
 ```
 
 Open that URL in your browser — your dashboard is live.
@@ -121,7 +121,7 @@ Open that URL in your browser — your dashboard is live.
 The Ollama pod pulls `gemma3:12b` on first start via a `postStart` lifecycle hook. This takes a few minutes and ~8GB of storage. Watch for it:
 
 ```bash
-oc logs -f deployment/ollama -n atriveo
+oc logs -f deployment/ollama -n careeros
 ```
 
 ---
@@ -131,8 +131,8 @@ oc logs -f deployment/ollama -n atriveo
 Don't wait for the hourly CronJob — run one immediately:
 
 ```bash
-oc create job --from=cronjob/atriveo-scraper manual-scrape-01 -n atriveo
-oc logs -f job/manual-scrape-01 -n atriveo
+oc create job --from=cronjob/careeros-scraper manual-scrape-01 -n careeros
+oc logs -f job/manual-scrape-01 -n careeros
 ```
 
 ---
@@ -144,7 +144,7 @@ The sidecar compiles resumes using your personal bullet bank. Because it needs y
 **Option A — Mount a PVC with your resume engine**
 ```bash
 # Copy your resume-engine/ into a PVC
-oc cp resume-engine/ atriveo/sidecar-pod:/resume-engine
+oc cp resume-engine/ careeros/sidecar-pod:/resume-engine
 ```
 
 **Option B — Run the sidecar locally, tunnel to the cluster**
@@ -156,17 +156,17 @@ Keep the sidecar on your Mac/Linux machine. Use a Kubernetes port-forward or clo
 
 ```bash
 # Build new images
-docker build -t ghcr.io/YOUR_USER/atriveo-jd-extractor:latest . && docker push ...
+docker build -t ghcr.io/YOUR_USER/careeros:latest . && docker push ...
 
 # Roll out
-oc rollout restart deployment/atriveo-app -n atriveo
+oc rollout restart deployment/careeros-app -n careeros
 ```
 
 ---
 
 ## Plain Kubernetes (non-OpenShift)
 
-Replace `oc` with `kubectl` throughout. Replace the `Route` resource with an `Ingress` resource pointing to the `atriveo-app` service on port `3001`. Everything else is standard K8s.
+Replace `oc` with `kubectl` throughout. Replace the `Route` resource with an `Ingress` resource pointing to the `careeros-app` service on port `3001`. Everything else is standard K8s.
 
 ---
 
@@ -176,7 +176,7 @@ Replace `oc` with `kubectl` throughout. Replace the `Route` resource with an `In
 |---|---|
 | `ImagePullBackOff` | Check image name and registry credentials (`oc create secret docker-registry`) |
 | Postgres pod `CrashLoopBackOff` | Check `POSTGRES_PASSWORD` in the secret matches `DATABASE_URL` |
-| App returns 500 on `/health` | Run `oc logs deployment/atriveo-app -n atriveo` |
+| App returns 500 on `/health` | Run `oc logs deployment/careeros-app -n careeros` |
 | Ollama pod OOMKilled | Increase memory limit in `ollama-deployment.yaml` (default: 16Gi) |
-| Scraper job fails | `oc logs job/manual-scrape-01 -n atriveo` — usually a bad `config.json` |
+| Scraper job fails | `oc logs job/manual-scrape-01 -n careeros` — usually a bad `config.json` |
 | Route not accessible | Verify TLS cert and `CORS_ORIGIN` matches the route hostname |

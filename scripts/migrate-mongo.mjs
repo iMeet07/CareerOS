@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), "..", ".env") });
 
-const uri = process.env.MONGODB_URI ?? "mongodb://localhost:27017/atriveo";
+const uri = process.env.MONGODB_URI ?? "mongodb://localhost:27017/careeros";
 await mongoose.connect(uri);
 
 const JobSchema = new mongoose.Schema({ id: { type: String, unique: true }, title: String, company: String, location: String, url: String, source: String, score: Number, status: String, description: String, salary: String, remote: Boolean, posted_at: String, scraped_at: String, tags: [String] });

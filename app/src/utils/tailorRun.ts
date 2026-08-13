@@ -186,7 +186,7 @@ export async function runSingleTailorJob(
   job: Job,
   onEvent?: (event: TailorStreamEvent) => void,
 ): Promise<SingleTailorResult> {
-  const resumeText = localStorage.getItem("atriveo_resume") || "";
+  const resumeText = localStorage.getItem("careeros_resume") || "";
 
   const controller = new AbortController();
   activeAbort = controller;

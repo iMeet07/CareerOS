@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Atriveo tailor sidecar — standalone, no missing-module dependencies.
+ * CareerOS tailor sidecar — standalone, no missing-module dependencies.
  *
  * Uses Ollama (gemma3:12b by default) to analyze job descriptions against your
  * bullet bank and resume, producing ATS optimization reports saved to disk.

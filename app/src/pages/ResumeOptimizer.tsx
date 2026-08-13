@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import AppHeader from "../components/AppHeader";
 import PageIntro from "../components/PageIntro";
 
-const RESUME_KEY = "atriveo_resume";
+const RESUME_KEY = "careeros_resume";
 const OLLAMA_BASE = "http://localhost:11434";
 
 const MODELS = [
@@ -531,7 +531,7 @@ export default function ResumeOptimizer() {
       </div>
 
       <footer>
-        <div className="wrapper">Atriveo · Resume Optimizer · Local AI</div>
+        <div className="wrapper">CareerOS · Resume Optimizer · Local AI</div>
       </footer>
     </div>
   );

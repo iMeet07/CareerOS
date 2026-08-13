@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# Atriveo JD Extractor — one-time setup
+# CareerOS JD Extractor — one-time setup
 # Run: bash scripts/setup.sh
 # ─────────────────────────────────────────────────────────────────────────────
 set -e
 BOLD="\033[1m" CYAN="\033[36m" GREEN="\033[32m" RED="\033[31m" RESET="\033[0m"
 
-echo -e "\n${BOLD}${CYAN}Atriveo JD Extractor — Setup${RESET}\n"
+echo -e "\n${BOLD}${CYAN}CareerOS — Setup${RESET}\n"
 
 # ── 1. Check prerequisites ───────────────────────────────────────────────────
 check() { command -v "$1" &>/dev/null && echo -e "${GREEN}✓${RESET} $1" || { echo -e "${RED}✗${RESET} $1 not found — install it first"; exit 1; }; }
@@ -46,13 +46,13 @@ fi
 echo -e "\n${BOLD}Setting up Cloudflare D1 database…${RESET}"
 source .env 2>/dev/null || true
 if [ -z "$D1_DATABASE_ID" ]; then
-  echo "Creating D1 database 'atriveo-auth'…"
-  wrangler d1 create atriveo-auth 2>&1 | grep -E "database_id|created"
+  echo "Creating D1 database 'careeros-auth'…"
+  wrangler d1 create careeros-auth 2>&1 | grep -E "database_id|created"
   echo -e "→ Copy the database_id above into your .env as D1_DATABASE_ID, then re-run."
   exit 0
 fi
 echo -e "${GREEN}✓${RESET} D1 database configured"
-wrangler d1 execute atriveo-auth --local --file=migrations/0001_init.sql 2>/dev/null || true
+wrangler d1 execute careeros-auth --local --file=migrations/0001_init.sql 2>/dev/null || true
 
 # ── 7. Ollama model ──────────────────────────────────────────────────────────
 if command -v ollama &>/dev/null; then

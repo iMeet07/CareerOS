@@ -141,7 +141,7 @@ export function companyLogoUrl(company?: string | null): string | null {
 
 export function companyColor(company?: string | null): string {
   const palette = ["#4f4f47", "#69725a", "#77766a", "#9a7653", "#8d534c", "#5f5e54"];
-  const source = company || "Atriveo";
+  const source = company || "CareerOS";
   const code = [...source].reduce((total, char) => total + char.charCodeAt(0), 0);
   return palette[code % palette.length];
 }

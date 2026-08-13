@@ -14,7 +14,7 @@ try {
   throw new Error("better-sqlite3 not installed. Run: npm install better-sqlite3");
 }
 
-const DB_PATH = process.env.SQLITE_PATH ?? path.join(process.cwd(), "data", "atriveo.db");
+const DB_PATH = process.env.SQLITE_PATH ?? path.join(process.cwd(), "data", "careeros.db");
 
 export class SqliteAdapter implements DbAdapter {
   private db: any;

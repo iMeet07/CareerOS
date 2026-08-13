@@ -254,7 +254,7 @@ export default function Skills() {
     setRefreshing(true);
     setRefreshMsg("");
     try {
-      const resume = localStorage.getItem("atriveo_resume") || "";
+      const resume = localStorage.getItem("careeros_resume") || "";
       const res = await fetch("/api/refresh", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

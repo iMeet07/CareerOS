@@ -28,7 +28,7 @@ async function main() {
   app.use("/api/emailfinder", emailfinderRouter());
 
   app.listen(PORT, () => {
-    console.log(`Atriveo server running on http://localhost:${PORT} [${process.env.DB_TYPE ?? "sqlite"}]`);
+    console.log(`CareerOS server running on http://localhost:${PORT} [${process.env.DB_TYPE ?? "sqlite"}]`);
   });
 
   process.on("SIGTERM", async () => { await db.close(); process.exit(0); });

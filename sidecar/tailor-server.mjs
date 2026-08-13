@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Atriveo local tailor sidecar.
+ * CareerOS local tailor sidecar.
  *
  * A browser cannot write to disk or reliably reach localhost services across
  * origins, and Cloudflare Pages Functions run in the cloud, not on this Mac.
@@ -79,7 +79,7 @@ const BANK_NUMBERS = loadBankNumbers(BANK);
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = 8787;
 const TAILOR_TOKEN = process.env.TAILOR_TOKEN?.trim() || "";
-const DEFAULT_MODEL = "gemma4:12b";
+const DEFAULT_MODEL = process.env.OLLAMA_MODEL ?? "gemma3:12b";
 const USE_LEGACY = process.env.TAILOR_LEGACY === "1";
 const AC_PLANNER = process.env.TAILOR_PLANNER?.trim() || "v2";
 const AC_LEARN = process.env.TAILOR_LEARN === "1";
@@ -1257,7 +1257,7 @@ const server = http.createServer(async (req, res) => {
     (async () => {
       try {
         if (!process.env.MONGO_URI) throw new Error("MONGO_URI not configured");
-        const workers = await withMongo((db) => listActiveWorkers(db), { appName: "AtriveoTailorServer" });
+        const workers = await withMongo((db) => listActiveWorkers(db), { appName: "CareerOSTailorServer" });
         res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
         res.end(JSON.stringify({ ok: true, workers }));
       } catch (e) {
@@ -1290,7 +1290,7 @@ const server = http.createServer(async (req, res) => {
     (async () => {
       try {
         if (!process.env.MONGO_URI) throw new Error("MONGO_URI not configured");
-        const kpis = await withMongo((db) => countPipelineKpis(db), { appName: "AtriveoTailorServer" });
+        const kpis = await withMongo((db) => countPipelineKpis(db), { appName: "CareerOSTailorServer" });
         res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
         res.end(JSON.stringify({ ok: true, ...kpis }));
       } catch (e) {
@@ -1306,7 +1306,7 @@ const server = http.createServer(async (req, res) => {
     (async () => {
       try {
         if (!process.env.MONGO_URI) throw new Error("MONGO_URI not configured");
-        const stats = await withMongo((db) => countActiveCompileJobs(db), { appName: "AtriveoTailorServer" });
+        const stats = await withMongo((db) => countActiveCompileJobs(db), { appName: "CareerOSTailorServer" });
         res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
         res.end(JSON.stringify({ ok: true, ...stats }));
       } catch (e) {
@@ -1324,7 +1324,7 @@ const server = http.createServer(async (req, res) => {
         if (!process.env.MONGO_URI) throw new Error("MONGO_URI not configured");
         const status = reqUrl.searchParams.get("status") || undefined;
         const limit = Math.min(Number(reqUrl.searchParams.get("limit") || 50), 200);
-        const jobs = await withMongo((db) => listCompileJobs(db, { status, limit }), { appName: "AtriveoTailorServer" });
+        const jobs = await withMongo((db) => listCompileJobs(db, { status, limit }), { appName: "CareerOSTailorServer" });
         res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
         res.end(JSON.stringify({ ok: true, jobs }));
       } catch (e) {
@@ -1351,7 +1351,7 @@ const server = http.createServer(async (req, res) => {
               priority: body.force ? undefined : body.priority,
               source: body.force ? "manual" : body.source,
             }, { force: body.force === true }),
-            { appName: "AtriveoTailorServer" },
+            { appName: "CareerOSTailorServer" },
           );
           res.writeHead(200, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ ok: true, ...result }));
@@ -1380,7 +1380,7 @@ const server = http.createServer(async (req, res) => {
           const minScore = Number(body.min_score || 0);
           const results = await withMongo(
             (db) => enqueueFreshSessionJobs(db, { limit, minScore }),
-            { appName: "AtriveoTailorServer" },
+            { appName: "CareerOSTailorServer" },
           );
           const enqueued = results.filter((r) => !r.skipped).length;
           res.writeHead(200, { "Content-Type": "application/json" });
@@ -1407,7 +1407,7 @@ const server = http.createServer(async (req, res) => {
           if (!jobs.length) throw new Error("jobs array required");
           const results = await withMongo(
             (db) => enqueueJobs(db, jobs.slice(0, 50), { force: body.force === true }),
-            { appName: "AtriveoTailorServer" },
+            { appName: "CareerOSTailorServer" },
           );
           const enqueued = results.filter((r) => !r.skipped).length;
           res.writeHead(200, { "Content-Type": "application/json" });
@@ -1433,7 +1433,7 @@ const server = http.createServer(async (req, res) => {
           if (!body.job_url) throw new Error("job_url required");
           const cancelled = await withMongo(
             (db) => cancelCompileJob(db, body.job_url),
-            { appName: "AtriveoTailorServer" },
+            { appName: "CareerOSTailorServer" },
           );
           res.writeHead(200, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ ok: true, cancelled }));
@@ -1456,7 +1456,7 @@ const server = http.createServer(async (req, res) => {
         if (!manifest) throw new Error("manifest not found");
         let job = null;
         if (process.env.MONGO_URI) {
-          job = await withMongo((db) => findJobByFingerprint(db, fingerprint), { appName: "AtriveoTailorServer" });
+          job = await withMongo((db) => findJobByFingerprint(db, fingerprint), { appName: "CareerOSTailorServer" });
         }
         res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
         res.end(JSON.stringify({ ok: true, fingerprint, manifest, artifacts_root: getArtifactsRoot(), job }));

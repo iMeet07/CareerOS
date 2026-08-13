@@ -5,7 +5,7 @@ import PageIntro from "../components/PageIntro";
 import { useExclusions } from "../hooks/useExclusions";
 import { assertTailorServerReady, listTailoredResumes } from "../utils/tailorRun";
 
-const RESUME_KEY = "atriveo_resume";
+const RESUME_KEY = "careeros_resume";
 const BANK_VERSION = 51;
 const PLANNER = "v2";
 
@@ -222,7 +222,7 @@ export default function Settings() {
       </div>
 
       <footer>
-        <div className="wrapper">Atriveo · Settings</div>
+        <div className="wrapper">CareerOS · Settings</div>
       </footer>
     </div>
   );

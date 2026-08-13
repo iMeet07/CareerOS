@@ -1,6 +1,6 @@
 # Scraper Sources Guide
 
-Atriveo supports multiple job sources. Each has different setup requirements and ToS implications.
+CareerOS supports multiple job sources. Each has different setup requirements and ToS implications.
 
 ---
 

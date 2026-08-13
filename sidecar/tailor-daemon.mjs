@@ -82,7 +82,7 @@ process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 if (env.TAILOR_ORIGIN) {
-  console.log(`Atriveo tailor daemon — relay ${env.TAILOR_ORIGIN}`);
+  console.log(`CareerOS tailor daemon — relay ${env.TAILOR_ORIGIN}`);
 } else {
-  console.log("Atriveo tailor daemon running");
+  console.log("CareerOS tailor daemon running");
 }

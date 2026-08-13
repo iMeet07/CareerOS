@@ -156,7 +156,7 @@ export default function ClickedJobsTable({
                     type="button"
                     className={`clicked-jobs-tracker-btn${trackerTone}`}
                     disabled={isSending || isSynced}
-                    title={trackerRecord?.trackerSyncMessage || "Add this job to Atriveo tracker"}
+                    title={trackerRecord?.trackerSyncMessage || "Add this job to CareerOS tracker"}
                     onClick={() => onAddToTracker(record.jobUrl, record.title, record.company, { location: record.location })}
                   >
                     {trackerCopy}

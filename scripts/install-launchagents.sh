@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# Atriveo — macOS LaunchAgent installer
+# CareerOS — macOS LaunchAgent installer
 # Installs three hourly services:
-#   com.atriveo.scraper      — scrapes job sources every hour
-#   com.atriveo.feed-sync    — pushes job feed to server / Cloudflare
-#   com.atriveo.tailor       — resume sidecar (keeps alive, restarts on crash)
+#   com.careeros.scraper      — scrapes job sources every hour
+#   com.careeros.feed-sync    — pushes job feed to server / Cloudflare
+#   com.careeros.tailor       — resume sidecar (keeps alive, restarts on crash)
 #
 # Usage: bash scripts/install-launchagents.sh
 #        npm run pipeline:install
@@ -30,17 +30,17 @@ install_agent() {
   echo -e "${GREEN}✓${RESET} ${label}"
 }
 
-echo -e "\n${BOLD}Installing Atriveo LaunchAgents…${RESET}\n"
+echo -e "\n${BOLD}Installing CareerOS LaunchAgents…${RESET}\n"
 
 # ── 1. Scraper (hourly at :00) ────────────────────────────────────────────────
 SOURCES="${SCRAPER_SOURCES:-greenhouse lever}"
 PYTHON="${ROOT}/scraper/.venv/bin/python"
 [ ! -f "$PYTHON" ] && PYTHON="$(command -v python3)"
 
-install_agent "com.atriveo.scraper" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+install_agent "com.careeros.scraper" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
 <plist version=\"1.0\"><dict>
-  <key>Label</key><string>com.atriveo.scraper</string>
+  <key>Label</key><string>com.careeros.scraper</string>
   <key>ProgramArguments</key><array>
     <string>${PYTHON}</string>
     <string>-m</string><string>scraper.main</string>
@@ -56,16 +56,16 @@ install_agent "com.atriveo.scraper" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
     <key>LINKEDIN_PASSWORD</key><string>${LINKEDIN_PASSWORD:-}</string>
   </dict>
   <key>StartInterval</key><integer>3600</integer>
-  <key>StandardOutPath</key><string>/tmp/atriveo_scraper.log</string>
-  <key>StandardErrorPath</key><string>/tmp/atriveo_scraper.log</string>
+  <key>StandardOutPath</key><string>/tmp/careeros_scraper.log</string>
+  <key>StandardErrorPath</key><string>/tmp/careeros_scraper.log</string>
   <key>RunAtLoad</key><false/>
 </dict></plist>"
 
 # ── 2. Feed sync (hourly at :20) ──────────────────────────────────────────────
-install_agent "com.atriveo.feed-sync" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+install_agent "com.careeros.feed-sync" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
 <plist version=\"1.0\"><dict>
-  <key>Label</key><string>com.atriveo.feed-sync</string>
+  <key>Label</key><string>com.careeros.feed-sync</string>
   <key>ProgramArguments</key><array>
     <string>$(command -v node)</string>
     <string>${ROOT}/scripts/sync-feed.mjs</string>
@@ -79,16 +79,16 @@ install_agent "com.atriveo.feed-sync" "<?xml version=\"1.0\" encoding=\"UTF-8\"?
   <key>StartCalendarInterval</key><dict>
     <key>Minute</key><integer>20</integer>
   </dict>
-  <key>StandardOutPath</key><string>/tmp/atriveo_feed_sync.log</string>
-  <key>StandardErrorPath</key><string>/tmp/atriveo_feed_sync.log</string>
+  <key>StandardOutPath</key><string>/tmp/careeros_feed_sync.log</string>
+  <key>StandardErrorPath</key><string>/tmp/careeros_feed_sync.log</string>
   <key>RunAtLoad</key><false/>
 </dict></plist>"
 
 # ── 3. Tailor sidecar (keep-alive) ───────────────────────────────────────────
-install_agent "com.atriveo.tailor" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+install_agent "com.careeros.tailor" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
 <plist version=\"1.0\"><dict>
-  <key>Label</key><string>com.atriveo.tailor</string>
+  <key>Label</key><string>com.careeros.tailor</string>
   <key>ProgramArguments</key><array>
     <string>$(command -v node)</string>
     <string>${ROOT}/sidecar/tailor-server.mjs</string>
@@ -103,15 +103,15 @@ install_agent "com.atriveo.tailor" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
     <key>OLLAMA_HOST</key><string>${OLLAMA_HOST:-127.0.0.1}</string>
   </dict>
   <key>KeepAlive</key><true/>
-  <key>StandardOutPath</key><string>/tmp/atriveo_tailor.log</string>
-  <key>StandardErrorPath</key><string>/tmp/atriveo_tailor.log</string>
+  <key>StandardOutPath</key><string>/tmp/careeros_tailor.log</string>
+  <key>StandardErrorPath</key><string>/tmp/careeros_tailor.log</string>
   <key>RunAtLoad</key><true/>
 </dict></plist>"
 
 echo -e "\n${BOLD}Services installed.${RESET}"
-echo -e "  Scraper:    hourly at :00  →  /tmp/atriveo_scraper.log"
-echo -e "  Feed sync:  hourly at :20  →  /tmp/atriveo_feed_sync.log"
-echo -e "  Tailor:     always-on      →  /tmp/atriveo_tailor.log"
+echo -e "  Scraper:    hourly at :00  →  /tmp/careeros_scraper.log"
+echo -e "  Feed sync:  hourly at :20  →  /tmp/careeros_feed_sync.log"
+echo -e "  Tailor:     always-on      →  /tmp/careeros_tailor.log"
 echo -e "\nCheck status:"
-echo -e "  launchctl list | grep atriveo"
+echo -e "  launchctl list | grep careeros"
 echo -e "  npm run pipeline:status\n"

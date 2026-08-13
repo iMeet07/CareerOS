@@ -1,30 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: atriveo-app
-  namespace: atriveo
+  name: careeros-app
+  namespace: careeros
   labels:
-    app: atriveo-app
+    app: careeros-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: atriveo-app
+      app: careeros-app
   template:
     metadata:
       labels:
-        app: atriveo-app
+        app: careeros-app
     spec:
       containers:
         - name: app
-          image: ghcr.io/atishay-kasliwal/atriveo-jd-extractor:latest
+          image: ghcr.io/iMeet07/careeros:latest
           ports:
             - containerPort: 3001
           envFrom:
             - configMapRef:
-                name: atriveo-config
+                name: careeros-config
             - secretRef:
-                name: atriveo-secrets
+                name: careeros-secrets
           resources:
             requests:
               cpu: "250m"
@@ -48,11 +48,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: atriveo-app
-  namespace: atriveo
+  name: careeros-app
+  namespace: careeros
 spec:
   selector:
-    app: atriveo-app
+    app: careeros-app
   ports:
     - port: 3001
       targetPort: 3001
@@ -60,12 +60,12 @@ spec:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: atriveo-app
-  namespace: atriveo
+  name: careeros-app
+  namespace: careeros
 spec:
   to:
     kind: Service
-    name: atriveo-app
+    name: careeros-app
   port:
     targetPort: 3001
   tls:

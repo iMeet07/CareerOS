@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "./useAuth";
 import type { Job } from "../types";
 
-const KEY = (uid: string) => `atriveo_exclusions_v1_${uid}`;
+const KEY = (uid: string) => `careeros_exclusions_v1_${uid}`;
 
 interface Exclusions {
   companies: string[]; // lowercased

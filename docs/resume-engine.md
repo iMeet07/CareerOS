@@ -1,6 +1,6 @@
 # Resume Engine Guide
 
-Atriveo's resume tailoring system uses a **local LLM + your personal bullet bank** to generate a tailored one-page PDF resume for each job — no OpenAI API, no cost, no data leaving your machine.
+CareerOS's resume tailoring system uses a **local LLM + your personal bullet bank** to generate a tailored one-page PDF resume for each job — no OpenAI API, no cost, no data leaving your machine.
 
 ---
 

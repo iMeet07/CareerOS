@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "./useAuth";
 
-const KEY = (uid: string) => `atriveo_apply_stats_v1_${uid}`;
+const KEY = (uid: string) => `careeros_apply_stats_v1_${uid}`;
 
 export type TrackerStatus = "applied" | "rejected" | null;
 export type OfferStatus = "pending" | "accepted" | "declined" | null;
@@ -122,7 +122,7 @@ function normalize(raw: unknown): ApplyStats {
 function load(uid: string): ApplyStats {
   try {
     // Try user-scoped key, fall back to anon key, then legacy key for migration
-    const raw = localStorage.getItem(KEY(uid)) ?? localStorage.getItem(KEY("anon")) ?? localStorage.getItem("atriveo_apply_stats_v1");
+    const raw = localStorage.getItem(KEY(uid)) ?? localStorage.getItem(KEY("anon")) ?? localStorage.getItem("careeros_apply_stats_v1");
     return raw ? normalize(JSON.parse(raw)) : empty();
   } catch {
     return empty();
@@ -176,7 +176,7 @@ function trackerResultToJobUpdate(result: Record<string, unknown>, nowIso: strin
     return {
       jobUrl,
       trackerSyncStatus: duplicate ? "duplicate" : "synced",
-      trackerSyncMessage: duplicate ? "Already exists in Atriveo tracker." : "Added to Atriveo tracker.",
+      trackerSyncMessage: duplicate ? "Already exists in CareerOS tracker." : "Added to CareerOS tracker.",
       trackerSyncedAt: nowIso,
     };
   }
@@ -191,7 +191,7 @@ function trackerResultToJobUpdate(result: Record<string, unknown>, nowIso: strin
   return {
     jobUrl,
     trackerSyncStatus: "error",
-    trackerSyncMessage: status ? `Atriveo tracker returned HTTP ${status}.` : "Atriveo tracker sync failed.",
+    trackerSyncMessage: status ? `CareerOS tracker returned HTTP ${status}.` : "CareerOS tracker sync failed.",
   };
 }
 
@@ -230,7 +230,7 @@ function describeTrackerSync(data: unknown, scope: ApplySyncScope, nowIso: strin
     if (failed > 0) {
       return {
         status: "error",
-        message: `${failed} Atriveo tracker sync issue${failed === 1 ? "" : "s"} — local progress is safe.`,
+        message: `${failed} CareerOS tracker sync issue${failed === 1 ? "" : "s"} — local progress is safe.`,
         lastSynced: false,
         jobUpdates,
       };
@@ -248,7 +248,7 @@ function describeTrackerSync(data: unknown, scope: ApplySyncScope, nowIso: strin
     const duplicate = trackerSync.duplicate === true;
     return {
       status: "synced",
-      message: duplicate ? "Already exists in Atriveo tracker." : "Added to Atriveo tracker.",
+      message: duplicate ? "Already exists in CareerOS tracker." : "Added to CareerOS tracker.",
       lastSynced: true,
       jobUpdates: trackerSync.jobUrl ? [trackerResultToJobUpdate(trackerSync, nowIso)].filter((update): update is NonNullable<typeof update> => Boolean(update)) : [],
     };
@@ -270,7 +270,7 @@ function describeTrackerSync(data: unknown, scope: ApplySyncScope, nowIso: strin
       : "";
     return {
       status: "error",
-      message: status ? `Atriveo tracker returned HTTP ${status}.${detail}` : `Tracker sync needs retry — local progress is safe.${detail}`,
+      message: status ? `CareerOS tracker returned HTTP ${status}.${detail}` : `Tracker sync needs retry — local progress is safe.${detail}`,
       lastSynced: false,
       jobUpdates: trackerSync.jobUrl ? [trackerResultToJobUpdate(trackerSync, nowIso)].filter((update): update is NonNullable<typeof update> => Boolean(update)) : [],
     };
@@ -368,7 +368,7 @@ export function useApplyTracker() {
                 [jobUrl]: {
                   ...existing,
                   trackerSyncStatus: "error" as const,
-                  trackerSyncMessage: "Could not reach app server or Atriveo tracker.",
+                  trackerSyncMessage: "Could not reach app server or CareerOS tracker.",
                 },
               },
             };
@@ -434,7 +434,7 @@ export function useApplyTracker() {
             jobApplicationId: metadata.jobApplicationId ?? existing?.jobApplicationId ?? null,
             trackerStatus: existing?.trackerStatus ?? null,
             trackerSyncStatus: "pending",
-            trackerSyncMessage: "Sending to Atriveo tracker…",
+            trackerSyncMessage: "Sending to CareerOS tracker…",
             trackerSyncedAt: existing?.trackerSyncedAt ?? null,
             interviewAt: existing?.interviewAt ?? null,
             offerStatus: existing?.offerStatus ?? null,

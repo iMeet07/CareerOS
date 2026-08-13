@@ -1,8 +1,8 @@
 import type { TailorProcessLogEntry } from "../types/tailorQueue";
 
-const TAB_ID_KEY = "atriveo_tab_id";
-const LOGS_KEY = (uid: string) => `atriveo_tailor_process_logs_v1_${uid}`;
-const LOCK_KEY = (uid: string) => `atriveo_tailor_process_lock_v1_${uid}`;
+const TAB_ID_KEY = "careeros_tab_id";
+const LOGS_KEY = (uid: string) => `careeros_tailor_process_logs_v1_${uid}`;
+const LOCK_KEY = (uid: string) => `careeros_tailor_process_lock_v1_${uid}`;
 
 /** No heartbeat for this long → another tab may take over (covers refresh / crash). */
 export const TAILOR_LOCK_STALE_MS = 45_000;

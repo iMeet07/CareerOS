@@ -9,7 +9,7 @@
  *   npm run tailor:worker -- --enqueue   # enqueue top jobs then drain once
  *
  * Env:
- *   WORKER_ID          — override stable id (default: ~/.atriveo/worker-id)
+ *   WORKER_ID          — override stable id (default: ~/.careeros/worker-id)
  *   WORKER_REQUIRE_DRIVE=0 — claim jobs even without external drive (not recommended)
  *   TAILOR_OUT_ROOT    — PDF output root (must match across machines sharing a drive)
  *   ARTIFACTS_ROOT     — manifest cache root
@@ -217,12 +217,12 @@ async function main() {
       const results = await enqueueFreshSessionJobs(db, { limit: limit && limit > 0 ? limit : null });
       log("enqueue", `${results.filter((r) => !r.skipped).length} jobs queued`);
     }
-  }, { appName: "AtriveoTailorWorker" });
+  }, { appName: "CareerOSTailorWorker" });
 
   heartbeatTimer = setInterval(() => {
     void withMongo(async (db) => {
       await heartbeatWorker(db, WORKER_ID, workerProfile());
-    }, { appName: "AtriveoTailorWorker" }).catch(() => { /* ignore */ });
+    }, { appName: "CareerOSTailorWorker" }).catch(() => { /* ignore */ });
   }, HEARTBEAT_MS);
 
   try {
@@ -230,7 +230,7 @@ async function main() {
       let processed = false;
       await withMongo(async (db) => {
         processed = await processOneJob(db);
-      }, { appName: "AtriveoTailorWorker" });
+      }, { appName: "CareerOSTailorWorker" });
 
       if (!processed) {
         if (ONCE) break;
@@ -246,7 +246,7 @@ async function main() {
     if (heartbeatTimer) clearInterval(heartbeatTimer);
     await withMongo(async (db) => {
       await markWorkerOffline(db, WORKER_ID);
-    }, { appName: "AtriveoTailorWorker" }).catch(() => { /* ignore */ });
+    }, { appName: "CareerOSTailorWorker" }).catch(() => { /* ignore */ });
   }
 }
 

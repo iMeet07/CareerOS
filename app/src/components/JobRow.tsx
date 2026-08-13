@@ -180,7 +180,7 @@ export default function JobRow({ job, index, applyRecord, onAddToTracker, onExcl
         {!isApplied && job.job_url && (
           <button
             className="mark-btn tracker-add-btn"
-            title="Add to Atriveo tracker"
+            title="Add to CareerOS tracker"
             onClick={(e) => { e.preventDefault(); onAddToTracker(job.job_url, title, co, { location: job.location || null }); }}
           >Add to tracker</button>
         )}

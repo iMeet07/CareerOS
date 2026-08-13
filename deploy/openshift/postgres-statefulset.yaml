@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
-  namespace: atriveo
+  namespace: careeros
 spec:
   serviceName: postgres
   replicas: 1
@@ -19,13 +19,13 @@ spec:
           image: postgres:16-alpine
           env:
             - name: POSTGRES_USER
-              value: atriveo
+              value: careeros
             - name: POSTGRES_DB
-              value: atriveo
+              value: careeros
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: atriveo-secrets
+                  name: careeros-secrets
                   key: POSTGRES_PASSWORD
           ports:
             - containerPort: 5432
@@ -58,7 +58,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: atriveo
+  namespace: careeros
 spec:
   selector:
     app: postgres
@@ -71,8 +71,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgres-init
-  namespace: atriveo
+  namespace: careeros
 data:
   init.sql: |
     -- loaded from migrations/postgres/0001_init.sql at deploy time
-    -- run: kubectl create configmap postgres-init --from-file=migrations/postgres/0001_init.sql -n atriveo
+    -- run: kubectl create configmap postgres-init --from-file=migrations/postgres/0001_init.sql -n careeros

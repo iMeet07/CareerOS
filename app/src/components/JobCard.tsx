@@ -120,9 +120,9 @@ export default function JobCard({
     !isApplied
       ? ""
       : isTrackerSynced
-        ? `✓ Added to Atriveo tracker ×${applyRecord?.clicks}`
+        ? `✓ Added to CareerOS tracker ×${applyRecord?.clicks}`
         : isTrackerPending
-          ? "↻ Sending to Atriveo tracker…"
+          ? "↻ Sending to CareerOS tracker…"
           : trackerSyncStatus === "not_configured"
             ? "⚠ Saved locally — tracker not configured"
             : trackerSyncStatus === "error"
@@ -287,7 +287,7 @@ export default function JobCard({
               type="button"
               className="job-tile-action job-tile-action--tracker"
               onClick={handleTrackerClick}
-              title="Retry sending to Atriveo tracker"
+              title="Retry sending to CareerOS tracker"
             >
               <span className="job-tile-action-label-full">{trackerActionCopy}</span>
               <span className="job-tile-action-label-short">Retry</span>

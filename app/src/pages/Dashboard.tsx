@@ -478,7 +478,7 @@ export default function Dashboard({ initialPeriod = "hour" }: DashboardProps) {
     setPipelineRefreshing(true);
     setPipelineRefreshMsg("");
     try {
-      const resume = localStorage.getItem("atriveo_resume") || "";
+      const resume = localStorage.getItem("careeros_resume") || "";
       const res = await fetch("/api/refresh", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1348,7 +1348,7 @@ export default function Dashboard({ initialPeriod = "hour" }: DashboardProps) {
 
       <footer>
         <div className="wrapper">
-          Atriveo Job Pipeline &nbsp;·&nbsp; Runs hourly 12 AM – 11 PM
+          CareerOS Job Pipeline &nbsp;·&nbsp; Runs hourly 12 AM – 11 PM
         </div>
       </footer>
     </div>

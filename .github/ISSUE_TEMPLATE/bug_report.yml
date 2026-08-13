@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before filing: check the [troubleshooting sections](https://github.com/atishay-kasliwal/Atriveo-JD-Extractor/tree/main/docs) in the docs.
+        Before filing: check the [troubleshooting sections](https://github.com/iMeet07/CareerOS/tree/main/docs) in the docs.
 
   - type: dropdown
     id: component

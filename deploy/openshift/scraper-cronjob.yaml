@@ -1,8 +1,8 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: atriveo-scraper
-  namespace: atriveo
+  name: careeros-scraper
+  namespace: careeros
 spec:
   schedule: "0 * * * *"       # every hour on the hour
   concurrencyPolicy: Forbid   # never run two scrapers at once
@@ -15,13 +15,13 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: scraper
-              image: ghcr.io/atishay-kasliwal/atriveo-jd-extractor-scraper:latest
+              image: ghcr.io/iMeet07/careeros-scraper:latest
               command: ["python", "-m", "scraper.main", "--sources", "greenhouse", "lever"]
               envFrom:
                 - configMapRef:
-                    name: atriveo-config
+                    name: careeros-config
                 - secretRef:
-                    name: atriveo-secrets
+                    name: careeros-secrets
               volumeMounts:
                 - name: config
                   mountPath: /app/config.json
@@ -36,15 +36,15 @@ spec:
           volumes:
             - name: config
               configMap:
-                name: atriveo-scraper-config
+                name: careeros-scraper-config
 ---
 # Store the user's config.json as a ConfigMap
-# To update: kubectl create configmap atriveo-scraper-config --from-file=config.json -n atriveo
+# To update: kubectl create configmap careeros-scraper-config --from-file=config.json -n careeros
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: atriveo-scraper-config
-  namespace: atriveo
+  name: careeros-scraper-config
+  namespace: careeros
 data:
   config.json: |
     {

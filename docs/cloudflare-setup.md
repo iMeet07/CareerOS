@@ -1,6 +1,6 @@
 # Cloudflare Setup Guide
 
-Deploy Atriveo to Cloudflare Pages (free tier) in about 10 minutes.
+Deploy CareerOS to Cloudflare Pages (free tier) in about 10 minutes.
 
 ## What you get
 
@@ -32,7 +32,7 @@ This opens a browser window to authorize the CLI with your Cloudflare account.
 ## Step 2 — Create a D1 database
 
 ```bash
-wrangler d1 create atriveo-auth
+wrangler d1 create careeros-auth
 ```
 
 Copy the `database_id` from the output — you'll need it in the next step.
@@ -64,7 +64,7 @@ SCRAPER_TOKEN = "any-random-secret"
 
 ```bash
 # Apply schema to the remote D1 database
-wrangler d1 execute atriveo-auth --file=migrations/d1/0001_init.sql
+wrangler d1 execute careeros-auth --file=migrations/d1/0001_init.sql
 ```
 
 ---
@@ -76,7 +76,7 @@ npm run build
 npm run deploy:pages
 ```
 
-You'll get a URL like `https://atriveo-abc123.pages.dev`. That's your live dashboard.
+You'll get a URL like `https://careeros-abc123.pages.dev`. That's your live dashboard.
 
 ---
 

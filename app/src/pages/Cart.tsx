@@ -131,7 +131,7 @@ export default function Cart() {
 
       <footer>
         <div className="wrapper">
-          Atriveo Job Pipeline &nbsp;·&nbsp; Your focus list · Persists across sessions
+          CareerOS Job Pipeline &nbsp;·&nbsp; Your focus list · Persists across sessions
         </div>
       </footer>
     </div>

@@ -1,4 +1,4 @@
-# Contributing to Atriveo
+# Contributing to CareerOS
 
 Thanks for your interest. Here's how to get involved.
 
@@ -7,8 +7,8 @@ Thanks for your interest. Here's how to get involved.
 ## Getting started
 
 ```bash
-git clone https://github.com/atishay-kasliwal/Atriveo-JD-Extractor.git
-cd Atriveo-JD-Extractor
+git clone https://github.com/iMeet07/CareerOS.git
+cd CareerOS
 bash scripts/setup.sh
 npm run dev          # frontend at localhost:5173
 npm run server:dev   # API server at localhost:3001
@@ -18,7 +18,7 @@ npm run server:dev   # API server at localhost:3001
 
 ## What to work on
 
-Check the [issues](https://github.com/atishay-kasliwal/Atriveo-JD-Extractor/issues) tab. Good first issues are labeled `good first issue`.
+Check the [issues](https://github.com/iMeet07/CareerOS/issues) tab. Good first issues are labeled `good first issue`.
 
 High-priority areas:
 - **New job sources** — add a new scraper in `scraper/sources/`

@@ -1,4 +1,4 @@
--- Atriveo — PostgreSQL schema
+-- CareerOS — PostgreSQL schema
 
 CREATE TABLE IF NOT EXISTS users (
   email         TEXT PRIMARY KEY,

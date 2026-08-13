@@ -4,7 +4,7 @@ import type { Job } from "../types";
 import { careerOpsRating } from "../utils/jobPresentation";
 import { jobDismissKey } from "../utils/jobCopy";
 
-const KEY = (uid: string) => `atriveo_apply_click_log_v1_${uid}`;
+const KEY = (uid: string) => `careeros_apply_click_log_v1_${uid}`;
 
 export type SavedJobSource = "apply" | "click" | "add";
 
@@ -71,7 +71,7 @@ function load(uid: string): ApplyClickRecord[] {
 function persist(uid: string, records: ApplyClickRecord[]) {
   try {
     localStorage.setItem(KEY(uid), JSON.stringify(records.slice(0, 250)));
-    window.dispatchEvent(new CustomEvent("atriveo:apply-click-log", { detail: { uid } }));
+    window.dispatchEvent(new CustomEvent("careeros:apply-click-log", { detail: { uid } }));
   } catch {
     /* ignore */
   }
@@ -116,10 +116,10 @@ export function useApplyClickLog() {
     const onStorage = (e: StorageEvent) => {
       if (e.key === KEY(uid)) reload();
     };
-    window.addEventListener("atriveo:apply-click-log", onCustom);
+    window.addEventListener("careeros:apply-click-log", onCustom);
     window.addEventListener("storage", onStorage);
     return () => {
-      window.removeEventListener("atriveo:apply-click-log", onCustom);
+      window.removeEventListener("careeros:apply-click-log", onCustom);
       window.removeEventListener("storage", onStorage);
     };
   }, [uid]);

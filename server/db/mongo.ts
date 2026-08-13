@@ -34,7 +34,7 @@ const UserModel = model("User", UserSchema);
 
 export class MongoAdapter implements DbAdapter {
   constructor() {
-    mongoose.connect(process.env.MONGODB_URI ?? "mongodb://localhost:27017/atriveo");
+    mongoose.connect(process.env.MONGODB_URI ?? "mongodb://localhost:27017/careeros");
   }
 
   async getJobs(filters?: { status?: string; limit?: number }): Promise<Job[]> {

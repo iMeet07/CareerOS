@@ -82,7 +82,7 @@ export function formatJobsForClipboard(jobs: Job[], descriptionsByUrl: Record<st
   });
 
   const header = [
-    `# Atriveo Selected Jobs (${jobs.length})`,
+    `# CareerOS Selected Jobs (${jobs.length})`,
     `Copied: ${copiedAt} ET`,
   ].join("\n");
 

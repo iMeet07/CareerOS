@@ -1,6 +1,6 @@
 version: "3.9"
 
-# Atriveo — full local self-hosted stack
+# CareerOS — full local self-hosted stack
 # Usage: docker compose up -d
 # Docs:  docs/docker-setup.md
 
@@ -16,7 +16,7 @@ services:
     environment:
       NODE_ENV: production
       DB_TYPE: ${DB_TYPE:-postgres}
-      DATABASE_URL: postgres://atriveo:atriveo@postgres:5432/atriveo
+      DATABASE_URL: postgres://careeros:careeros@postgres:5432/careeros
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       SCRAPER_TOKEN: ${SCRAPER_TOKEN:?SCRAPER_TOKEN is required}
       TAILOR_TOKEN: ${TAILOR_TOKEN:-}
@@ -84,16 +84,16 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: atriveo
-      POSTGRES_PASSWORD: atriveo
-      POSTGRES_DB: atriveo
+      POSTGRES_USER: careeros
+      POSTGRES_PASSWORD: careeros
+      POSTGRES_DB: careeros
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ../migrations/postgres/0001_init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U atriveo"]
+      test: ["CMD-SHELL", "pg_isready -U careeros"]
       interval: 5s
       timeout: 5s
       retries: 5

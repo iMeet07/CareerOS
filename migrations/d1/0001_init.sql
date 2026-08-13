@@ -1,4 +1,4 @@
--- Atriveo — base schema (D1 / SQLite compatible)
+-- CareerOS — base schema (D1 / SQLite compatible)
 
 CREATE TABLE IF NOT EXISTS users (
   email         TEXT PRIMARY KEY,

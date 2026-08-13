@@ -10,7 +10,7 @@ function tailorUnavailableMessage(): string {
   if (!isLocalTailorHost()) {
     return "Tailor relay unreachable. On your Mac: npm run tailor:install (or npm run tailor:prod). If DNS is missing, run once: cloudflared tunnel login && npm run tailor:dns";
   }
-  return "Tailor server not running. In a second terminal run: cd ~/atriveo-app && npm run tailor";
+  return "Tailor server not running. In a second terminal run: cd ~/careeros-app && npm run tailor";
 }
 
 function isTailorStreamNetworkError(message: string): boolean {
@@ -295,7 +295,7 @@ export function useJobSelection(jobs: Job[], options?: JobSelectionOptions) {
     setAnalysisMessage("Analyzing full JDs…");
     try {
       const descriptionsByUrl = await loadJobDescriptions(selectedJobs);
-      const resumeText = localStorage.getItem("atriveo_resume") || "";
+      const resumeText = localStorage.getItem("careeros_resume") || "";
       setAnalysis(analyzeSelectedJobs(selectedJobs, descriptionsByUrl, resumeText));
       setAnalysisMessage(`Analyzed ${selectedJobs.length} job${selectedJobs.length === 1 ? "" : "s"}`);
     } catch {
@@ -352,7 +352,7 @@ export function useJobSelection(jobs: Job[], options?: JobSelectionOptions) {
         .filter((j) => j.jd.trim().length > 50);
 
       const skipped = selectedJobs.length - jobsWithJd.length;
-      const resumeText = localStorage.getItem("atriveo_resume") || "";
+      const resumeText = localStorage.getItem("careeros_resume") || "";
       if (!jobsWithJd.length) {
         setTailorRun((prev) => ({
           active: false,

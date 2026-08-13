@@ -26,9 +26,9 @@ import { abortActiveTailorJob, checkJobOnDisk } from "../utils/tailorRun";
 import { useAuth } from "./useAuth";
 import type { useTailorStatus } from "./useTailorStatus";
 
-const QUEUE_KEY = (uid: string) => `atriveo_tailor_queue_v1_${uid}`;
-const SYNC_KEY = (uid: string) => `atriveo_tailor_last_hourly_sync_v1_${uid}`;
-const LOGS_KEY = (uid: string) => `atriveo_tailor_process_logs_v1_${uid}`;
+const QUEUE_KEY = (uid: string) => `careeros_tailor_queue_v1_${uid}`;
+const SYNC_KEY = (uid: string) => `careeros_tailor_last_hourly_sync_v1_${uid}`;
+const LOGS_KEY = (uid: string) => `careeros_tailor_process_logs_v1_${uid}`;
 /** Abort a stuck running job if the browser↔Mac stream drops but fetch never settles. */
 const RUNNING_STALE_MS = 3 * 60 * 1000;
 const RECOVER_RETRY_MS = 8_000;

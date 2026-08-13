@@ -1,8 +1,8 @@
-# Atriveo — Open-Source Job Search Platform
+# CareerOS — Open-Source Job Search Platform
 
 > Self-hosted · Local-first · LLM-powered
 
-Atriveo is a full job search operating system that runs on your machine. It scrapes job postings from LinkedIn, Greenhouse, and Lever, scores and ranks them against your profile, auto-tailors resumes using a local LLM (zero API cost), and tracks your entire pipeline from discovery to offer.
+CareerOS is a full job search operating system that runs on your machine. It scrapes job postings from LinkedIn, Greenhouse, and Lever, scores and ranks them against your profile, auto-tailors resumes using a local LLM (zero API cost), and tracks your entire pipeline from discovery to offer.
 
 ---
 
@@ -12,10 +12,10 @@ Atriveo is a full job search operating system that runs on your machine. It scra
 
 **You don't need to run the frontend at all.**
 
-Go to **[application.atriveo.com](https://application.atriveo.com)**, sign up (Google or email), and connect your self-hosted backend by pasting your endpoint URL + API key. The UI lives on our servers; your data stays on yours.
+Go to **[careeros.app](https://careeros.app)**, sign up (Google or email), and connect your self-hosted backend by pasting your endpoint URL + API key. The UI lives on our servers; your data stays on yours.
 
 ```
-application.atriveo.com  ←  hosted UI (free, always up to date)
+careeros.app  ←  hosted UI (free, always up to date)
         ↕
 your machine / server   ←  backend + scraper + LLM (you run this)
 ```
@@ -25,8 +25,8 @@ your machine / server   ←  backend + scraper + LLM (you run this)
 Run the full stack on your own machine — backend, scraper, LLM, and the React frontend. No external dependency at all.
 
 ```bash
-git clone https://github.com/atishay-kasliwal/Atriveo-JD-Extractor.git
-cd Atriveo-JD-Extractor
+git clone https://github.com/iMeet07/CareerOS.git
+cd CareerOS
 bash scripts/setup.sh
 npm run dev        # frontend on localhost:5173
 npm run server     # backend on localhost:3001
@@ -60,7 +60,7 @@ LinkedIn / Greenhouse / Lever
         ↓
   Express server (port 3001)
         ↕
-  application.atriveo.com  ←  or your own React frontend (localhost:5173)
+  careeros.app  ←  or your own React frontend (localhost:5173)
         ↓
   Select jobs to tailor
         ↓
@@ -91,8 +91,8 @@ No Cloudflare account required unless you want to self-host the frontend on Clou
 
 ```bash
 # 1. Clone
-git clone https://github.com/atishay-kasliwal/Atriveo-JD-Extractor.git
-cd Atriveo-JD-Extractor
+git clone https://github.com/iMeet07/CareerOS.git
+cd CareerOS
 
 # 2. Run setup (guides you through .env, DB, Ollama)
 bash scripts/setup.sh
@@ -103,7 +103,7 @@ cd server && npm install && npm start
 
 # 4. (Optional) Start the frontend locally
 cd app && npm install && npm run dev
-# Or just use https://application.atriveo.com — paste http://localhost:3001 as your endpoint
+# Or just use https://careeros.app — paste http://localhost:3001 as your endpoint
 
 # 5. Fill in resume-engine/Memory/experience.md with your bullets
 
@@ -113,7 +113,7 @@ npm run tailor:prod
 
 ---
 
-## Connecting to application.atriveo.com
+## Connecting to careeros.app
 
 If you're using the hosted UI, you need to expose your local backend so the cloud UI can reach it. The easiest way is [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/):
 
@@ -125,7 +125,7 @@ brew install cloudflared
 cloudflared tunnel --url http://localhost:3001
 # → gives you a public URL like https://abc123.trycloudflare.com
 
-# Use that URL + your API_KEY from .env when connecting on application.atriveo.com
+# Use that URL + your API_KEY from .env when connecting on careeros.app
 ```
 
 Or deploy the backend to any server (Docker, VPS, OpenShift) and use that URL directly.
@@ -159,8 +159,8 @@ API_KEY=your_random_secret_here    # used to authenticate the hosted UI → your
 
 # Database (pick one)
 DB_TYPE=sqlite                     # sqlite (default, no setup), postgres, or mongo
-# MONGO_URI=mongodb://localhost:27017/atriveo
-# POSTGRES_URL=postgresql://user:pass@localhost:5432/atriveo
+# MONGO_URI=mongodb://localhost:27017/careeros
+# POSTGRES_URL=postgresql://user:pass@localhost:5432/careeros
 
 # Scraper
 LINKEDIN_ENABLED=true
@@ -214,7 +214,7 @@ oc apply -f deploy/openshift/scraper-cronjob.yaml   # CronJob: runs hourly
 
 | Method | Best for | Docs |
 |---|---|---|
-| **application.atriveo.com** | Most users — no frontend to run | Sign up at the link |
+| **careeros.app** | Most users — no frontend to run | Sign up at the link |
 | **Docker Compose** | Self-hosted, single machine | `docker compose up -d` |
 | **Cloudflare Pages + Workers** | Frontend on the edge, free tier | [docs/cloudflare-setup.md](docs/cloudflare-setup.md) |
 | **OpenShift / Kubernetes** | Teams, enterprise | [docs/openshift-setup.md](docs/openshift-setup.md) |

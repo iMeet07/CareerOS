@@ -1,5 +1,5 @@
 """
-Atriveo scraper — entry point.
+CareerOS scraper — entry point.
 Runs all enabled sources, scores jobs, deduplicates, and pushes to the server.
 
 Usage:
@@ -123,7 +123,7 @@ async def run(sources: list[str], dry_run: bool = False):
             print(f"[scraper] Push failed: {res.status_code} {res.text}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Atriveo job scraper")
+    parser = argparse.ArgumentParser(description="CareerOS job scraper")
     parser.add_argument("--sources", nargs="+", default=["greenhouse", "lever", "linkedin"], choices=["greenhouse", "lever", "linkedin"])
     parser.add_argument("--dry-run", action="store_true", help="Score and print top jobs without pushing")
     args = parser.parse_args()

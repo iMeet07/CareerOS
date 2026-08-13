@@ -16,7 +16,7 @@
 *::-webkit-scrollbar-thumb:hover { background: oklch(0.42 0.008 260); }
 
 /*
- * Atriveo dark theme — ported verbatim from the Lovable "Dark Mode Magic"
+ * CareerOS dark theme — ported verbatim from the Lovable "Dark Mode Magic"
  * redesign (Dark Mode Magic/src/styles.css). Color tokens are kept in their
  * original oklch() form so the palette is pixel-identical to the reference.
  * The app's legacy variable names (--bg, --text, --blue, --tier-*) are then
@@ -5506,7 +5506,7 @@ footer a:hover { color: var(--blue); }
 }
 
 /* ── Soft Vanilla UI pass ───────────────────────────────────────────────
-   Inspired by the warmer “soft cards + black CTA” direction: keep Atriveo
+   Inspired by the warmer “soft cards + black CTA” direction: keep CareerOS
    dense and useful, but make the whole cockpit feel calmer and easier to scan.
 */
 /* (Removed duplicate light :root that was overriding the dark foundation.) */

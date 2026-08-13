@@ -17,7 +17,7 @@ export function isLocalTailorHost(): boolean {
 /** User-facing message when the sidecar / Cloudflare relay is unreachable. */
 export function tailorUnavailableMessage(): string {
   if (!isLocalTailorHost()) {
-    return "Tailor relay unreachable. On your Mac run: npm run tailor:prod (or launchctl kickstart -k gui/$(id -u)/com.atriveo.tailor).";
+    return "Tailor relay unreachable. On your Mac run: npm run tailor:prod (or launchctl kickstart -k gui/$(id -u)/com.careeros.tailor).";
   }
   return "Tailor server not running. In a second terminal: npm run tailor";
 }

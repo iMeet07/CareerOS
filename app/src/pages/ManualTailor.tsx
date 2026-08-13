@@ -147,7 +147,7 @@ export default function ManualTailor() {
   }, [tailorQueue.queue]);
 
   const resumeSaved = useMemo(() => {
-    const text = localStorage.getItem("atriveo_resume") || "";
+    const text = localStorage.getItem("careeros_resume") || "";
     return text.trim().length >= 50;
   }, []);
 
@@ -274,7 +274,7 @@ export default function ManualTailor() {
           {macStatus === "checking" ? "Checking Mac tailor connection…" : null}
           {macStatus === "ready" ? `Mac connected · ${macStatusDetail}` : null}
           {macStatus === "offline" ? (
-            <>Mac not reachable — {macStatusDetail} · Ensure <code>com.atriveo.tailor</code> is running and the Cloudflare tunnel is up.</>
+            <>Mac not reachable — {macStatusDetail} · Ensure <code>com.careeros.tailor</code> is running and the Cloudflare tunnel is up.</>
           ) : null}
         </div>
 

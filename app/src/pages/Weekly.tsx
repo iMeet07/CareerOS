@@ -228,7 +228,7 @@ export default function Weekly() {
 
       <footer>
         <div className="wrapper">
-          Atriveo Job Pipeline &nbsp;·&nbsp; Last 7 days · Deduplicated
+          CareerOS Job Pipeline &nbsp;·&nbsp; Last 7 days · Deduplicated
         </div>
       </footer>
     </div>
