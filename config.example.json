@@ -1,21 +1,34 @@
 {
   "profile": {
-    "name": "Jane Doe",
+    "name": "Your Name",
     "keywords": [
-      "software engineer", "full stack", "backend", "typescript", "python", "react"
+      "machine learning", "ml engineer", "ai engineer", "nlp engineer",
+      "data scientist", "applied scientist", "research scientist",
+      "data engineer", "analytics engineer", "software engineer",
+      "backend engineer", "mlops", "python", "pytorch", "tensorflow",
+      "llm", "large language model", "rag", "deep learning",
+      "generative ai", "vector search", "embeddings"
     ],
-    "location": "San Francisco, CA",
-    "preferred_locations": ["San Francisco", "New York", "Remote"],
+    "linkedin_queries": [
+      "machine learning engineer new grad 2026",
+      "ai engineer entry level",
+      "data scientist new grad",
+      "software engineer ml ai",
+      "applied scientist new grad"
+    ],
+    "location": "New York, NY",
+    "preferred_locations": ["New York", "Remote"],
     "remote_preferred": true,
-    "excluded_companies": ["Company I Don't Want"],
-
+    "excluded_companies": [],
     "greenhouse_boards": [
-      "airbnb", "figma", "notion", "stripe", "linear", "vercel",
-      "anthropic", "openai", "databricks"
+      "anthropic", "databricks", "stripe", "vercel",
+      "figma", "airbnb", "twilio", "mongodb", "elastic",
+      "lyft", "pinterest", "dropbox", "coinbase", "robinhood",
+      "cloudflare", "discord", "duolingo", "roblox", "instacart"
     ],
     "lever_companies": [
-      "netflix", "spotify", "shopify", "github", "cloudflare",
-      "discord", "plaid", "brex"
+      "spotify",
+      "palantir"
     ]
   }
 }

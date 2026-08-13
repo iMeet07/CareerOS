@@ -4,14 +4,8 @@ import type { TailorJobState, TailorLogEntry, TailorLogKind, TailorRunState, Tai
 import { analyzeSelectedJobs, type SelectedJobAnalysis } from "../utils/jobAnalysis";
 import { loadJobDescriptions } from "../utils/jobDescriptionBuckets";
 import { copyTextToClipboard, formatJobsForClipboard, jobCopyKey } from "../utils/jobCopy";
-import { getTailorServerBase, isLocalTailorHost } from "../utils/tailorServer";
-
-function tailorUnavailableMessage(): string {
-  if (!isLocalTailorHost()) {
-    return "Tailor relay unreachable. On your Mac: npm run tailor:install (or npm run tailor:prod). If DNS is missing, run once: cloudflared tunnel login && npm run tailor:dns";
-  }
-  return "Tailor server not running. In a second terminal run: cd ~/careeros-app && npm run tailor";
-}
+import { getTailorServerBase, isLocalTailorHost, tailorUnavailableMessage } from "../utils/tailorServer";
+import { assertTailorServerReady } from "../utils/tailorRun";
 
 function isTailorStreamNetworkError(message: string): boolean {
   const m = message.toLowerCase();
@@ -34,27 +28,6 @@ function tailorStreamErrorMessage(raw: string): string {
   }
   if (raw.includes("Failed to fetch")) return tailorUnavailableMessage();
   return raw;
-}
-
-async function assertTailorServerReady(): Promise<void> {
-  const base = getTailorServerBase();
-  try {
-    const res = await fetch(`${base}/health`, { signal: AbortSignal.timeout(8000), credentials: "include" });
-    if (res.status === 503) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || "Tailor relay not configured on Cloudflare.");
-    }
-    if (!res.ok) throw new Error("unreachable");
-    const data = await res.json();
-    if (!data.ok) throw new Error("unreachable");
-    if (!data.driveMounted) {
-      throw new Error("External drive not mounted. Check your drive connection and retry.");
-    }
-  } catch (e) {
-    const msg = (e as Error).message || String(e);
-    if (msg.includes("drive") || msg.includes("relay not configured")) throw e;
-    throw new Error(tailorUnavailableMessage());
-  }
 }
 
 async function readTailorStream(

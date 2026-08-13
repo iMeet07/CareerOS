@@ -6,7 +6,7 @@ import type { ResumeArtifacts } from "./resumeDiff";
 import { outcomeFromError, outcomeFromServerStatus } from "./tailorOutcome";
 import { captureTailorStreamEvent, resetTailorLogCapture, trimTailorLogs } from "./tailorLogCapture";
 import { loadJobDescriptions } from "./jobDescriptionBuckets";
-import { getTailorServerBase, isLocalTailorHost } from "./tailorServer";
+import { getTailorServerBase, tailorUnavailableMessage } from "./tailorServer";
 
 const MIN_JD_HARD_CHARS = 200;
 const MIN_JD_IDEAL_CHARS = 400;
@@ -17,13 +17,6 @@ let activeAbort: AbortController | null = null;
 
 export function abortActiveTailorJob(): void {
   activeAbort?.abort();
-}
-
-function tailorUnavailableMessage(): string {
-  if (!isLocalTailorHost()) {
-    return "Tailor relay unreachable. Start npm run tailor:prod on your Mac.";
-  }
-  return "Tailor server not running. Run: npm run tailor";
 }
 
 function isAbortError(err: unknown): boolean {
@@ -70,15 +63,25 @@ async function readTailorStream(
 
 export async function assertTailorServerReady(signal?: AbortSignal): Promise<void> {
   const base = getTailorServerBase();
-  const res = await fetch(`${base}/health`, {
-    signal: signal ?? AbortSignal.timeout(8000),
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error(tailorUnavailableMessage());
-  const data = await res.json();
-  if (!data.ok) throw new Error(tailorUnavailableMessage());
-  if (!data.driveMounted) {
-    throw new Error("External drive not mounted. Check your drive connection and retry.");
+  try {
+    const res = await fetch(`${base}/health`, {
+      signal: signal ?? AbortSignal.timeout(8000),
+      credentials: "include",
+    });
+    if (res.status === 503) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Tailor relay not configured on Cloudflare.");
+    }
+    if (!res.ok) throw new Error("unreachable");
+    const data = await res.json();
+    if (!data.ok) throw new Error("unreachable");
+    if (!data.driveMounted) {
+      throw new Error("External drive not mounted. Check your drive connection and retry.");
+    }
+  } catch (e) {
+    const msg = (e as Error).message || String(e);
+    if (msg.includes("drive") || msg.includes("relay not configured")) throw e;
+    throw new Error(tailorUnavailableMessage());
   }
 }
 

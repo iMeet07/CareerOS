@@ -92,6 +92,10 @@ export class MongoAdapter implements DbAdapter {
     await UserModel.create(user);
   }
 
+  async updateUserPassword(email: string, passwordHash: string): Promise<void> {
+    await UserModel.updateOne({ email }, { password_hash: passwordHash });
+  }
+
   async getUserPrefs(email: string): Promise<string> {
     const doc = await PrefsModel.findOne({ user_email: email }).lean() as { data: string } | null;
     return doc?.data ?? "{}";

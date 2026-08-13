@@ -30,6 +30,7 @@
   "dependencies": {
     "@types/better-sqlite3": "^9.6.0",
     "@types/cookie-parser": "^1.4.10",
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.11.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -46,6 +47,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260409.1",
+    "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^24.12.2",

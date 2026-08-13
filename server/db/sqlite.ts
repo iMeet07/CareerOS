@@ -102,6 +102,10 @@ export class SqliteAdapter implements DbAdapter {
     `).run(user);
   }
 
+  async updateUserPassword(email: string, passwordHash: string): Promise<void> {
+    this.db.prepare("UPDATE users SET password_hash=? WHERE email=?").run(passwordHash, email);
+  }
+
   async getUserPrefs(email: string): Promise<string> {
     const row = this.db.prepare("SELECT data FROM prefs WHERE user_email=?").get(email) as { data: string } | undefined;
     return row?.data ?? "{}";

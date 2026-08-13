@@ -98,6 +98,10 @@ export class PostgresAdapter implements DbAdapter {
     );
   }
 
+  async updateUserPassword(email: string, passwordHash: string): Promise<void> {
+    await this.query("UPDATE users SET password_hash=$1 WHERE email=$2", [passwordHash, email]);
+  }
+
   async getUserPrefs(email: string): Promise<string> {
     const res = await this.query("SELECT data FROM prefs WHERE user_email=$1", [email]);
     return (res.rows[0] as { data: string } | undefined)?.data ?? "{}";
